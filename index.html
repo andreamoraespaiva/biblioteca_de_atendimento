@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#15152A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ORAYON Suporte">
+<meta name="description" content="Biblioteca de atendimento, templates e dashboard SLA da equipe ORAYON">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>ORAYON Suporte</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --np:#F0357A;--cs:#3F4FE8;--dl:#6B7EEE;--dm:#15152A;--cl:#F0EFF8;
+  --np-light:#fde8f1;--cs-light:#eaecfd;--dl-light:#f0f2fb;
+  --chat-c:#0D7377;--chat-bg:#e1f5ee;
+  --email-c:#3F4FE8;--email-bg:#eaecfd;
+  --ticket-c:#0F6E56;--ticket-bg:#d6f5ec;
+  --new-c:#F0357A;--new-bg:#fde8f1;
+  --warn-c:#854F0B;--warn-bg:#FAEEDA;
+  --danger-c:#A32D2D;--danger-bg:#FCEBEB;
+  --gray-c:#5F5E5A;--gray-bg:#F1EFE8;
+  --ok:#166534;--ok-bg:#dcfce7;
+  --yellow:#854F0B;--yellow-bg:#fef9c3;
+  --red:#991B1B;--red-bg:#fee2e2;
+  --bg:#f8f8fb;--surface:#ffffff;--border:#e5e7eb;
+  --text:#1F2937;--text2:#6B7280;--text3:#9CA3AF;
+  --radius:10px;--radius-sm:6px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'SF Mono','Fira Code',monospace;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f0f1a;--surface:#1a1a2e;--border:#2d2d4e;--text:#f1f0f8;--text2:#a09db8;--text3:#5c5a7a}
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}
+
+/* ── APP SHELL ── */
+.app{display:flex;flex-direction:column;min-height:100vh;max-width:900px;margin:0 auto}
+@media(max-width:600px){.app{max-width:100%}}
+
+/* ── HEADER ── */
+.header{background:var(--dm);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+.logo{font-size:15px;font-weight:600;color:#fff;white-space:nowrap}
+.logo span{color:var(--np)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.timer-widget{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:5px 10px}
+.timer-select{background:transparent;border:none;color:#ccc;font-size:11px;cursor:pointer;font-family:var(--font);outline:none;max-width:140px}
+.timer-select option{background:#1e1e3a;color:#fff}
+.timer-display{font-size:14px;font-weight:600;font-family:var(--mono);min-width:52px;text-align:center;transition:color .3s}
+.t-ok{color:#4ade80}.t-warn{color:#fbbf24}.t-danger{color:#f87171}.t-idle{color:#888}
+.timer-btn{padding:3px 9px;border-radius:5px;border:none;font-size:11px;cursor:pointer;font-weight:600;transition:all .15s}
+.t-start{background:var(--np);color:#fff}
+.t-stop{background:rgba(255,255,255,.15);color:#fff}
+.pulse{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:blink 1.2s infinite;flex-shrink:0}
+.pulse.warn{background:#fbbf24}.pulse.danger{background:#f87171;animation:blink .5s infinite}.pulse.idle{background:#555;animation:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── TABS ── */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:5px;transition:all .15s;flex-shrink:0}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--cs);border-bottom-color:var(--cs);font-weight:500}
+.tab.np-tab.active{color:var(--np);border-bottom-color:var(--np)}
+.new-count{background:var(--np);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600}
+
+/* ── CONTENT ── */
+.content{background:var(--surface);flex:1;padding:14px 16px}
+.pane{display:none}
+.pane.active{display:block}
+
+/* ── SEARCH ── */
+.search-row{display:flex;gap:8px;margin-bottom:12px}
+.sw{flex:1;position:relative}
+.sw input{width:100%;padding:8px 12px 8px 30px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);font-family:var(--font)}
+.sw input:focus{outline:none;border-color:var(--cs)}
+.si{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3)}
+.add-btn{padding:8px 13px;background:var(--np);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.add-btn:active{opacity:.85}
+.filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.filt{padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;background:var(--bg);color:var(--text2);transition:all .15s}
+.filt:hover{border-color:var(--cs);color:var(--cs)}
+.filt.active{background:var(--cs);border-color:var(--cs);color:#fff}
+.stats{font-size:12px;color:var(--text3);margin-bottom:10px}
+
+/* ── CARDS ── */
+.cards{display:flex;flex-direction:column;gap:8px}
+.card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s}
+.card.new-card{border-color:rgba(240,53,122,.4)}
+.card-head{display:flex;align-items:center;gap:8px;padding:11px 13px;cursor:pointer;user-select:none;background:var(--surface)}
+.card-head:hover{background:var(--bg)}
+.card.new-card .card-head{background:rgba(240,53,122,.04)}
+.badge{font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.b-chat{background:var(--chat-bg);color:var(--chat-c)}
+.b-email{background:var(--email-bg);color:var(--email-c)}
+.b-ticket{background:var(--ticket-bg);color:var(--ticket-c)}
+.b-new{background:var(--new-bg);color:var(--new-c)}
+.b-notif{background:var(--warn-bg);color:var(--warn-c)}
+.b-danger{background:var(--danger-bg);color:var(--danger-c)}
+.b-gray{background:var(--gray-bg);color:var(--gray-c)}
+.card-info{flex:1;min-width:0}
+.card-title{font-size:13px;font-weight:500;color:var(--text)}
+.card-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.chevron{font-size:11px;color:var(--text3);transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+.card-body{border-top:1px solid var(--border);padding:13px;background:var(--surface)}
+.tpl-box{background:var(--cl);border-left:3px solid var(--cs);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 13px;font-size:13px;color:#1F2937;white-space:pre-wrap;line-height:1.65;overflow-x:auto}
+.tpl-box.pink{border-left-color:var(--np);background:var(--np-light)}
+.tpl-box.amber{border-left-color:#BA7517;background:#FFF8EC}
+.tpl-box.teal{border-left-color:#0F6E56;background:#E1F5EE}
+.tpl-box.red{border-left-color:#A32D2D;background:#FCEBEB}
+.act-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.copy-btn{padding:6px 13px;background:var(--cs);border:none;border-radius:var(--radius-sm);color:#fff;font-size:12px;cursor:pointer;transition:opacity .15s}
+.copy-btn.copied{background:var(--ok)}
+.del-btn{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:transparent;color:var(--text3);transition:all .15s}
+.del-btn:hover{border-color:var(--danger-c);color:var(--danger-c)}
+.vars-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.var-chip{font-size:11px;background:var(--dl-light);border:1px solid var(--dl);border-radius:4px;padding:2px 7px;color:var(--cs);font-family:var(--mono)}
+.hr{height:1px;background:var(--border);margin:10px 0}
+.note-lbl{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.notes{font-size:12px;color:var(--text2);line-height:1.5}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:14px}
+
+/* ── FORM ── */
+.form-wrap{display:flex;flex-direction:column;gap:13px}
+.form-title{font-size:15px;font-weight:500;color:var(--text)}
+.form-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;font-weight:500;color:var(--text2)}
+.field input,.field select,.field textarea{padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);font-family:var(--font)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--cs)}
+.field textarea{resize:vertical;line-height:1.6}
+.frow{display:flex;gap:10px;flex-wrap:wrap}
+.frow .field{flex:1;min-width:120px}
+.prev-box{background:var(--cl);border-left:3px solid var(--np);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 13px;font-size:13px;color:#1F2937;white-space:pre-wrap;line-height:1.65;min-height:60px}
+.save-btn{padding:9px 20px;background:var(--np);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:500;cursor:pointer}
+.clear-btn{padding:9px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;background:transparent;color:var(--text2)}
+.toast{display:none;align-items:center;gap:8px;padding:10px 13px;background:var(--ok-bg);border:1px solid var(--ok);border-radius:var(--radius-sm);font-size:13px;color:var(--ok);margin-top:4px}
+.sec-title{font-size:12px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* ── DASHBOARD ── */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:18px}
+.metric{background:var(--bg);border-radius:var(--radius-sm);padding:11px 13px;border:1px solid var(--border)}
+.metric-label{font-size:11px;color:var(--text3);margin-bottom:4px}
+.metric-val{font-size:24px;font-weight:500}
+.mv-ok{color:var(--ok)}.mv-warn{color:var(--yellow)}.mv-danger{color:var(--red)}.mv-n{color:var(--text)}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+@media(max-width:500px){.dash-row{grid-template-columns:1fr}}
+.dash-block{background:var(--bg);border-radius:var(--radius-sm);padding:13px;border:1px solid var(--border)}
+.dash-block-title{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:11px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bar-label{font-size:11px;color:var(--text2);width:80px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s}
+.bar-pct{font-size:11px;color:var(--text3);width:30px;text-align:right}
+.log-table{width:100%;border-collapse:collapse;font-size:12px}
+.log-table th{text-align:left;padding:6px 8px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)}
+.log-table td{padding:7px 8px;border-bottom:1px solid var(--border);color:var(--text)}
+.log-table tr:last-child td{border-bottom:none}
+.sp{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
+.sp-ok{background:var(--ok-bg);color:var(--ok)}
+.sp-warn{background:var(--yellow-bg);color:var(--yellow)}
+.sp-danger{background:var(--red-bg);color:var(--red)}
+.add-log-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end}
+.add-log-row .field{flex:1;min-width:100px}
+.log-btn{padding:8px 13px;background:var(--cs);border:none;border-radius:var(--radius-sm);color:#fff;font-size:12px;cursor:pointer}
+.clr-log-btn{padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:transparent;color:var(--text3)}
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 0;flex-wrap:wrap}
+.donut-legend{display:flex;flex-direction:column;gap:7px}
+.dl-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.dl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">ORAYON <span>•</span> Suporte</div>
+  <div class="header-right">
+    <div class="timer-widget">
+      <div class="pulse idle" id="t-dot"></div>
+      <select class="timer-select" id="t-canal" onchange="timerReset()">
+        <option value="">Canal...</option>
+        <option value="30">Chat / WA — 30 min</option>
+        <option value="240">Ticket — acuse 4h</option>
+        <option value="480">E-mail — denúncia 1d</option>
+        <option value="960">E-mail — dúvida 2d</option>
+        <option value="1440">E-mail — aprovação 3d</option>
+        <option value="960">Ticket — flag 2d</option>
+        <option value="2400">Ticket — recadastro 5d</option>
+        <option value="3360">Ticket — transferência 7d</option>
+      </select>
+      <span class="timer-display t-idle" id="t-display">00:00</span>
+      <button class="timer-btn t-start" id="t-btn" onclick="timerToggle()">Iniciar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-lib" onclick="sw('lib')">Biblioteca</div>
+  <div class="tab np-tab" id="tab-new" onclick="sw('new')">Novos <span class="new-count" id="new-count">0</span></div>
+  <div class="tab" id="tab-add" onclick="sw('add')">+ Adicionar</div>
+  <div class="tab" id="tab-dash" onclick="sw('dash')">Dashboard SLA</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- BIBLIOTECA -->
+  <div class="pane active" id="pane-lib">
+    <div class="search-row">
+      <div class="sw"><span class="si">⌕</span><input type="text" id="search" placeholder="Buscar... (ex: órbita, flag, recadastro)" oninput="render()"></div>
+      <button class="add-btn" onclick="sw('add')">+ Novo</button>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="stats" id="stats"></div>
+    <div class="cards" id="cards"></div>
+  </div>
+
+  <!-- NOVOS -->
+  <div class="pane" id="pane-new">
+    <div class="sec-title">Templates adicionados pela equipe</div>
+    <div class="cards" id="new-cards"></div>
+  </div>
+
+  <!-- ADICIONAR -->
+  <div class="pane" id="pane-add">
+    <div class="form-wrap">
+      <div><div class="form-title">Criar novo template</div><div class="form-sub">Abertura e fechamento já pré-montados e editáveis. Preencha a mensagem principal.</div></div>
+      <div class="frow">
+        <div class="field" style="flex:2"><label>Título</label><input type="text" id="f-titulo" placeholder="Ex: Dúvida sobre comissão de upgrade"></div>
+        <div class="field"><label>Canal</label><select id="f-canal"><option value="chat">Chat / WA / Direct</option><option value="email">E-mail</option><option value="ticket">Ticket</option></select></div>
+        <div class="field"><label>Tema</label><select id="f-tema"><option value="geral">Geral</option><option value="marca">Marca & Logo</option><option value="conduta">Conduta & Rede</option><option value="flags">Flags</option><option value="notif">Notificações</option><option value="denuncia">Denúncias</option></select></div>
+      </div>
+      <div class="field"><label>Descrição curta</label><input type="text" id="f-sub" placeholder="Quando usar este template"></div>
+      <div class="field"><label>Abertura</label><textarea id="f-ab" rows="3" oninput="updPrev()">Olá, [Nome]! Tudo bem?
+
+Obrigado(a) por entrar em contato com a equipe de suporte da ORAYON. Estou aqui para te ajudar.</textarea></div>
+      <div class="field"><label>Mensagem principal</label><textarea id="f-body" rows="6" placeholder="Use [colchetes] para campos que o atendente deve preencher." oninput="updPrev()"></textarea></div>
+      <div class="field"><label>Fechamento</label><textarea id="f-close" rows="3" oninput="updPrev()">Ficou claro? Qualquer outra dúvida, estou à disposição!
+
+[Assinatura padrão]</textarea></div>
+      <div class="field"><label>Orientações ao atendente (opcional)</label><input type="text" id="f-notas" placeholder="Ex: Citar sempre a Aula 6.3."></div>
+      <div class="field"><label>Pré-visualização</label><div class="prev-box" id="prev">Preencha os campos acima para visualizar.</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="save-btn" onclick="saveTpl()">Salvar template</button>
+        <button class="clear-btn" onclick="clearForm()">Limpar</button>
+      </div>
+      <div class="toast" id="toast">Template salvo! Disponível na aba "Novos".</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="pane" id="pane-dash">
+    <div class="sec-title">Registrar atendimento</div>
+    <div class="add-log-row">
+      <div class="field"><label>Canal / tipo</label>
+        <select id="log-canal">
+          <option value="chat">Chat / WA / Direct</option>
+          <option value="email-geral">E-mail — Dúvida geral</option>
+          <option value="email-aprov">E-mail — Aprovação material</option>
+          <option value="email-den">E-mail — Denúncia</option>
+          <option value="ticket-acuse">Ticket — Acuse</option>
+          <option value="ticket-rec">Ticket — Recadastro</option>
+          <option value="ticket-transf">Ticket — Transferência</option>
+          <option value="ticket-flag">Ticket — Flag</option>
+        </select>
+      </div>
+      <div class="field"><label>Atendente</label><input type="text" id="log-att" placeholder="Nome"></div>
+      <div class="field"><label>Protocolo</label><input type="text" id="log-prot" placeholder="#0001"></div>
+      <div class="field"><label>Tempo (min)</label><input type="number" id="log-tempo" placeholder="45" min="1"></div>
+      <button class="log-btn" onclick="addLog()">Registrar</button>
+      <button class="clr-log-btn" onclick="clearLog()">Limpar</button>
+    </div>
+    <div class="sec-title">Performance geral</div>
+    <div class="dash-grid" id="dash-metrics"></div>
+    <div class="dash-row">
+      <div class="dash-block"><div class="dash-block-title">SLA por canal</div><div id="dash-bars"></div></div>
+      <div class="dash-block"><div class="dash-block-title">Distribuição de status</div><div class="donut-wrap" id="dash-donut"></div></div>
+    </div>
+    <div class="sec-title">Histórico</div>
+    <div style="overflow-x:auto">
+      <table class="log-table"><thead><tr><th>Protocolo</th><th>Canal</th><th>Atendente</th><th>Tempo</th><th>SLA</th><th>Status</th></tr></thead><tbody id="log-body"></tbody></table>
+    </div>
+    <div id="log-empty" class="empty" style="display:none">Nenhum atendimento registrado. Use o formulário acima para começar.</div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── SLA MAP ──────────────────────────────────────────────────────
+const SLA_MAP={chat:30,"email-geral":960,"email-aprov":1440,"email-den":480,"ticket-acuse":240,"ticket-rec":2400,"ticket-transf":3360,"ticket-flag":960};
+const SLA_LABELS={chat:"Chat / WA","email-geral":"E-mail Dúvida","email-aprov":"E-mail Aprovação","email-den":"E-mail Denúncia","ticket-acuse":"Ticket Acuse","ticket-rec":"Ticket Recadastro","ticket-transf":"Ticket Transferência","ticket-flag":"Ticket Flag"};
+
+// ── TIMER ────────────────────────────────────────────────────────
+let tRun=false,tSec=0,tSLA=0,tInt=null;
+function timerReset(){if(tRun)timerStop();tSec=0;updTimer();}
+function timerToggle(){tRun?timerStop():timerStart();}
+function timerStart(){
+  const v=document.getElementById("t-canal").value;
+  if(!v){alert("Selecione o canal antes de iniciar.");return;}
+  tSLA=parseInt(v)*60;tRun=true;tSec=0;
+  document.getElementById("t-btn").textContent="Parar";
+  document.getElementById("t-btn").className="timer-btn t-stop";
+  tInt=setInterval(()=>{tSec++;updTimer();},1000);
+}
+function timerStop(){
+  tRun=false;clearInterval(tInt);
+  document.getElementById("t-btn").textContent="Iniciar";
+  document.getElementById("t-btn").className="timer-btn t-start";
+  updTimer();
+}
+function updTimer(){
+  const m=Math.floor(tSec/60),s=tSec%60;
+  const el=document.getElementById("t-display"),dot=document.getElementById("t-dot");
+  el.textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  if(!tRun&&tSec===0){el.className="timer-display t-idle";dot.className="pulse idle";return;}
+  const p=tSLA>0?tSec/tSLA:0;
+  if(p>=1){el.className="timer-display t-danger";dot.className="pulse danger";}
+  else if(p>=0.75){el.className="timer-display t-warn";dot.className="pulse warn";}
+  else{el.className="timer-display t-ok";dot.className="pulse";}
+}
+
+// ── TEMPLATES ────────────────────────────────────────────────────
+const BASE=[
+  {id:1,canal:"chat",tema:"geral",titulo:"Abertura padrão — chat / WhatsApp / direct",sub:"Toda primeira mensagem via chat, WhatsApp, direct ou redes sociais",vars:["[Nome]"],notas:"Tom leve e acolhedor. Sem formalidade excessiva.",tpl:"Olá, [Nome]! Tudo bem?\n\nMe chamo [Seu Nome] e faço parte da equipe de suporte da ORAYON. Estou aqui para te ajudar!\n\nComo posso te auxiliar hoje?",cor:"teal"},
+  {id:2,canal:"chat",tema:"geral",titulo:"Confirmação da demanda — chat",sub:"Antes de responder — confirmar o que foi entendido",vars:["[resumo da dúvida]"],notas:"Sempre confirmar antes de responder, mesmo no chat.",tpl:"Entendi! Só para garantir que vou te ajudar da forma certa:\n\nVocê quer saber [resumo da dúvida], certo?\n\nSe eu entendi diferente, é só me corrigir!",cor:"teal"},
+  {id:3,canal:"chat",tema:"geral",titulo:"Encerramento — chat / WhatsApp / direct",sub:"Final de todo atendimento via chat, WhatsApp, direct",vars:["[Nome]"],notas:"Reforçar canal oficial para dúvidas mais complexas.",tpl:"Fico à disposição para qualquer outra dúvida, [Nome]! Foi um prazer te ajudar.\n\nSe precisar de algo mais elaborado, pode nos escrever pelo e-mail compliance@orayon.ai.\n\nBons negócios!",cor:"teal"},
+  {id:4,canal:"email",tema:"marca",titulo:"Dúvida sobre uso do nome / logo ORAYON",sub:"Franqueado pergunta o que pode ou não usar",vars:["[Nome]","[nome/logo/id. visual]","[permitido]","[proibido]"],notas:"Citar Aula 6.1. Lembrar do processo de aprovação.",tpl:"Olá, [Nome]! Tudo bem?\n\nObrigado(a) por consultar antes de publicar!\n\nSobre o uso [do nome / do logo / da identidade visual] da ORAYON, conforme o Manual de Compliance (Aula 6.1):\n\n✅ O que é permitido: [descrever]\n❌ O que não é permitido: [descrever]\n\nCaso queira usar material com a identidade visual da ORAYON, envie para compliance@orayon.ai e aguarde a aprovação. Só publique após a confirmação oficial.\n\n[Assinatura padrão]"},
+  {id:5,canal:"email",tema:"marca",titulo:"Aprovação de material com logo/marca",sub:"Franqueado enviou material para análise",vars:["[Nome]"],notas:"Prazo: 3 dias úteis. Aprovação só por e-mail — nunca verbal.",tpl:"Olá, [Nome]! Tudo bem?\n\nRecebi seu material para análise. Nossa equipe verificará se está de acordo com o Manual de Marca oficial da ORAYON.\n\nPrazo de retorno: até 3 dias úteis. Resultado: aprovado, aprovado com ajustes ou reprovado (com orientações).\n\n⚠️ Não publique antes de receber a aprovação formal. Publicação sem aprovação configura infração (Aula 6.1) e pode gerar flag amarela.\n\n[Assinatura padrão]"},
+  {id:6,canal:"email",tema:"notif",titulo:"Notificação de posicionamento incorreto",sub:"Conteúdo apresentando ORAYON como MLM ou venda direta",vars:["[Nome]","[canal/plataforma]","[trecho]"],notas:"Prazo: 24–72h. Citar Aula 6.1 — Seção 5.",tpl:"Olá, [Nome]! Tudo bem?\n\nIdentificamos em [canal/plataforma] um conteúdo incompatível com as diretrizes de posicionamento (Aula 6.1 — Seção 5).\n\nPonto identificado:\n[Descrever o conteúdo ou trecho]\n\nAjuste necessário:\nA ORAYON deve ser apresentada como empresa de educação e tecnologia em IA com modelo de franquia digital — nunca como MLM, venda direta ou esquema de ganho fácil.\n\nPrazo para ajuste: 24 a 72 horas.\n\nApós ajustar, confirme respondendo este e-mail.\n\n[Assinatura para notificações]",cor:"amber"},
+  {id:7,canal:"email",tema:"denuncia",titulo:"Confirmação de recebimento de denúncia",sub:"Após receber denúncia de aliciamento, fraude ou infração grave",vars:["[Nome]","[XXXX]"],notas:"Prioridade máxima. Escalar imediatamente. SLA: 1 dia útil.",tpl:"Olá, [Nome]! Tudo bem?\n\nAgradecemos por trazer essa situação ao nosso conhecimento. Sua denúncia foi registrada com protocolo [XXXX] e será analisada com prioridade.\n\nInformações importantes:\n• Todas as denúncias são tratadas com sigilo.\n• Prazo de retorno inicial: até 1 dia útil.\n• Caso necessite de mais tempo, você será informado(a).\n\nObrigado(a) por contribuir para a saúde do ecossistema ORAYON.\n\n[Assinatura para escaladas — protocolo [XXXX]]",cor:"red"},
+  {id:8,canal:"email",tema:"geral",titulo:"Resposta negativa — demanda não autorizada",sub:"Quando a solicitação não pode ser atendida",vars:["[Nome]","[Aula X.X]","[motivo]","[alternativa]"],notas:"Sempre oferecer alternativa permitida quando existir.",tpl:"Olá, [Nome]! Tudo bem?\n\nObrigado(a) por entrar em contato. Analisamos sua solicitação com atenção.\n\nApós verificar as diretrizes do Manual de Compliance (Aula X.X), precisamos informar que [a prática / material / ação] não está de acordo com as nossas regras porque:\n\n[Motivo claro e respeitoso]\n\nO que você pode fazer:\n[Alternativa permitida]\n\nEstamos aqui para apoiar!\n\n[Assinatura padrão]"},
+  {id:9,canal:"email",tema:"geral",titulo:"Escalada — demanda fora do manual",sub:"Quando a resposta exige análise do compliance",vars:["[Nome]","[X dias úteis]"],notas:"Nunca improvisar. Se não está no manual, escalar.",tpl:"Olá, [Nome]! Tudo bem?\n\nRecebi sua solicitação e vou encaminhar para análise da nossa equipe de compliance.\n\nVocê receberá um retorno em até [X dias úteis] pelo e-mail compliance@orayon.ai.\n\n[Assinatura para escaladas]",cor:"amber"},
+  {id:10,canal:"ticket",tema:"geral",titulo:"Acuse de recebimento — ticket",sub:"Primeira resposta — até 4h úteis",vars:["[Nome]","[XXXX]","[tipo]","[prazo]"],notas:"Obrigatório em todo ticket. Máximo 4 horas úteis.",tpl:"Olá, [Nome]! Tudo bem?\n\nRecebi seu ticket com protocolo [XXXX]. Sua solicitação foi classificada como [tipo] e será analisada em até [prazo].\n\nFique tranquilo(a) — acompanharemos seu caso até a resolução completa!\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"teal"},
+  {id:11,canal:"ticket",tema:"geral",titulo:"Resolução de ticket",sub:"Resposta com resolução, base no manual e próximos passos",vars:["[Nome]","[XXXX]","[situação]","[resolução]","[próximos passos]"],notas:"Só marcar como resolvido após confirmação do franqueado.",tpl:"Olá, [Nome]! Tudo bem?\n\nAnalisamos sua solicitação (Protocolo [XXXX]):\n\n📋 Situação:\n[Descrever]\n\n✅ Resolução:\n[Com base no manual]\n\n📌 Próximos passos:\n[Ações necessárias]\n\nQualquer dúvida pode ser incluída neste mesmo ticket.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"teal"},
+  {id:12,canal:"ticket",tema:"geral",titulo:"Negativa de ticket",sub:"Quando a solicitação não pode ser processada",vars:["[Nome]","[XXXX]","[Aula X.X]","[motivo]"],notas:"Citar o manual. Oferecer contestação via e-mail.",tpl:"Olá, [Nome]! Tudo bem?\n\nAnalisamos sua solicitação (Protocolo [XXXX]).\n\nApós verificar o Manual de Compliance (Aula X.X), identificamos que [a solicitação] não pode ser processada porque:\n\n[Motivo baseado no manual]\n\nO que você pode fazer:\n[Alternativa permitida]\n\nPara contestar, encaminhe para compliance@orayon.ai com o protocolo [XXXX].\n\n[Nome do Atendente] | Equipe de Suporte ORAYON"},
+  {id:13,canal:"ticket",tema:"geral",titulo:"Escalada de ticket",sub:"Ticket que exige análise mais profunda",vars:["[Nome]","[XXXX]","[X dias úteis]"],notas:"Manter o ticket aberto. Nunca fechar sem resolução.",tpl:"Olá, [Nome]! Tudo bem?\n\nSua solicitação (Protocolo [XXXX]) requer análise aprofundada da equipe de compliance.\n\nRetorno em até [X dias úteis]. Não encerre este ticket.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"amber"},
+  {id:14,canal:"ticket",tema:"conduta",titulo:"Recadastro — parceiro sem rede (Cenário 1)",sub:"Franqueado sem equipe quer trocar de equipe",vars:["[Nome]","[XXXX]"],notas:"60 dias de desengajamento. Só 1 vez. Perda total de acesso.",tpl:"Protocolo [XXXX] | Recadastro — Parceiro sem rede\n\nOlá, [Nome]! Tudo bem?\n\nConforme o Manual de Compliance (Aula 6.2 — Cenário 1), para prosseguir confirme:\n\n[ ] Sem franqueados nem clientes vinculados à sua órbita\n[ ] 60 dias consecutivos de desengajamento operacional\n\n⚠️ Ao cancelar: perda total de acesso (plataforma, cursos, ferramentas, backoffice). Novo cadastro exige aquisição completa do combo.\n\nEssa troca só pode ser realizada UMA única vez. Confirme respondendo este ticket.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"amber"},
+  {id:15,canal:"ticket",tema:"conduta",titulo:"Recadastro — parceiro com rede (Cenário 2)",sub:"Franqueado com equipe quer trocar de equipe",vars:["[Nome]","[XXXX]"],notas:"6 meses de inatividade. Equipe não acompanha. Só 1 vez.",tpl:"Protocolo [XXXX] | Recadastro — Parceiro com rede\n\nOlá, [Nome]! Tudo bem?\n\nComo você possui franqueados ou clientes na sua órbita, aplicam-se as regras do Cenário 2 (Aula 6.2):\n\n[ ] Perda total de acesso ao cancelar\n[ ] Equipe NÃO acompanha\n[ ] Inatividade obrigatória: 6 meses (180 dias)\n[ ] Novo cadastro com aquisição completa do combo\n[ ] Só pode ser feito UMA única vez\n\nConfirme sua ciência respondendo este ticket.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"amber"},
+  {id:16,canal:"ticket",tema:"conduta",titulo:"Transferência de titularidade",sub:"Franqueado quer transferir a conta",vars:["[Nome]","[XXXX]"],notas:"Mínimo 12 meses ativo. Trava de 2 anos após.",tpl:"Protocolo [XXXX] | Transferência de Titularidade\n\nOlá, [Nome]! Tudo bem?\n\nConforme a Aula 6.2, precisamos verificar:\n\n[ ] Conta ativa por no mínimo 12 meses consecutivos\n[ ] Conta em dia neste momento\n[ ] CPF/CNPJ de destino não foi expulso ou banido\n[ ] CPF/CNPJ de destino não está em período de carência\n[ ] CPF/CNPJ de destino sem pendências com a ORAYON\n\nInforme o CPF/CNPJ de destino e confirme os itens. Prazo: até 7 dias úteis.\n\n⚠️ Após a transferência, conta travada por 2 anos.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"teal"},
+  {id:17,canal:"ticket",tema:"flags",titulo:"Contestação de flag",sub:"Franqueado contesta uma flag aplicada",vars:["[Nome]","[XXXX]","[cor]","[data]"],notas:"Prazo: 2 dias úteis após evidências completas.",tpl:"Protocolo [XXXX] | Contestação de Flag [cor]\n\nOlá, [Nome]! Tudo bem?\n\nRecebemos sua contestação da flag [cor] aplicada em [data].\n\nPara análise completa, informe:\n1. Por que a flag foi aplicada incorretamente?\n2. Há evidências? Se sim, anexe neste ticket.\n\nPrazo: até 2 dias úteis após recebimento completo.\n\nMantenha este ticket aberto.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"red"},
+  {id:18,canal:"email",tema:"conduta",titulo:"Regra de órbita — cliente comprou de outro franqueado",sub:"Franqueado preocupado que perdeu o cliente",vars:["[Nome]"],notas:"Órbita é permanente. Distinguir órbita de comissão (Aula 6.3).",tpl:"Olá, [Nome]! Tudo bem?\n\nEntendo sua preocupação — e tenho uma boa notícia!\n\nDe acordo com o Manual de Compliance (Aula 6.3):\n\n✅ Seu cliente NÃO saiu da sua órbita. A vinculação é permanente.\n\nO que muda: apenas a comissão daquela compra vai para o franqueado que realizou a venda.\n\n• Compras dentro da plataforma → comissão sempre vai para você.\n• Compras por link externo de outro franqueado → comissão vai para quem vendeu.\n\nVocê não perdeu esse cliente!\n\n[Assinatura padrão]"},
+  {id:19,canal:"email",tema:"conduta",titulo:"Regra do sistema de cookies — prospecto",sub:"Para quem vai o cadastro com múltiplos links",vars:["[Nome]"],notas:"Vale sempre o último cookie. Citar Aula 6.3.",tpl:"Olá, [Nome]! Tudo bem?\n\nO sistema respeita sempre o último cookie — o link mais recente clicado pelo prospecto (Aula 6.3).\n\nNa prática:\n• Clicou só no seu link → vai para você.\n• Clicou em dois links → vale o mais recente.\n• Clica no seu link e compra na hora → vai para você.\n\nQuem faz o trabalho por último colhe o resultado.\n\n[Assinatura padrão]"},
+  {id:20,canal:"email",tema:"flags",titulo:"Explicação do sistema de flags",sub:"Franqueado quer entender o que é uma flag",vars:["[Nome]"],notas:"Citar Aula 6.4. Foco educativo — não gerar medo.",tpl:"Olá, [Nome]! Tudo bem?\n\nO sistema de flags é o mecanismo de governança da ORAYON (Aula 6.4):\n\n🟡 Amarela — Advertência. Prazo: 24–72h.\n🟠 Laranja — Suspensão até resolver. Sem acesso e sem comissões.\n🔴 Vermelha — Suspensão de 30 dias a 1 ano.\n⚫ Preta — Expulsão definitiva. Pode continuar como cliente.\n\nA melhor forma de nunca receber uma flag é seguir o Manual de Compliance.\n\n[Assinatura padrão]"},
+  {id:21,canal:"email",tema:"marca",titulo:"Posicionamento correto da ORAYON",sub:"Franqueado pergunta como apresentar a empresa",vars:["[Nome]"],notas:"Citar Aula 6.1 — Seção 5. Nunca MLM ou venda direta.",tpl:"Olá, [Nome]! Tudo bem?\n\nDe acordo com a Aula 6.1 — Seção 5:\n\n✅ Formas corretas:\n• \"A ORAYON é uma empresa de educação e tecnologia em IA.\"\n• \"Ecossistema completo com cursos, ferramentas e modelo de negócio.\"\n• \"Sou franqueado/parceiro da ORAYON.\"\n\n❌ Nunca:\n• Marketing multinível ou MLM\n• Venda direta\n• Esquema de ganho fácil\n\n[Assinatura padrão]"},
+  {id:22,canal:"ticket",tema:"flags",titulo:"Notificação de flag amarela",sub:"Comunicar abertura de flag amarela com prazo",vars:["[Nome]","[XXXX]","[infração]","[24h/72h]"],notas:"Pedir confirmação de leitura.",tpl:"Protocolo [XXXX] | Flag Amarela — Advertência\n\nOlá, [Nome]! Tudo bem?\n\nIdentificamos uma situação que requer correção imediata (Aula 6.4).\n\nInfração:\n[O que foi encontrado e onde]\n\nAção necessária:\n[O que precisa ser corrigido]\n\nPrazo: [24h / 72h] a partir deste comunicado.\n\nApós corrigir, confirme por este ticket. Se não corrigido, escala para flag laranja.\n\n[Nome do Atendente] | Equipe de Compliance ORAYON",cor:"amber"}
+];
+
+let uTpls=[],nId=100,fAtivo="all",abertos=new Set(),logData=[];
+const FILTROS=[{id:"all",l:"Todos"},{id:"chat",l:"Chat/WA"},{id:"email",l:"E-mail"},{id:"ticket",l:"Ticket"},{id:"marca",l:"Marca & Logo"},{id:"conduta",l:"Conduta & Rede"},{id:"flags",l:"Flags"},{id:"notif",l:"Notificações"},{id:"denuncia",l:"Denúncias"},{id:"geral",l:"Geral"}];
+function allT(){return[...BASE,...uTpls];}
+function bc(t){if(t._new)return"b-new";if(t.canal==="chat")return"b-chat";if(t.canal==="ticket")return"b-ticket";if(t.tema==="notif")return"b-notif";if(t.tema==="denuncia")return"b-danger";return"b-email";}
+function bl(t){if(t._new)return"Novo";if(t.canal==="chat")return"Chat/WA";if(t.canal==="ticket")return"Ticket";if(t.tema==="notif")return"Notif";if(t.tema==="denuncia")return"Denúncia";return"E-mail";}
+function tl(t){return{marca:"Marca & Logo",conduta:"Conduta & Rede",flags:"Flags",notif:"Notificações",denuncia:"Denúncias",geral:"Geral"}[t.tema]||t.tema;}
+function filtrar(){
+  const q=document.getElementById("search").value.toLowerCase().trim();
+  return allT().filter(t=>{
+    const mf=fAtivo==="all"||t.canal===fAtivo||t.tema===fAtivo;
+    if(!mf)return false;if(!q)return true;
+    return(t.titulo+t.sub+t.tpl+(t.notas||"")).toLowerCase().includes(q);
+  });
+}
+function buildF(){
+  const c=document.getElementById("filters");c.innerHTML="";
+  FILTROS.forEach(f=>{
+    const el=document.createElement("button");
+    el.className="filt"+(f.id===fAtivo?" active":"");
+    el.textContent=f.l;el.onclick=()=>{fAtivo=f.id;render();};c.appendChild(el);
+  });
+}
+function cHTML(t,del=false){
+  const o=abertos.has(t.id);
+  return`<div class="card${t._new?" new-card":""}" id="card-${t.id}">
+  <div class="card-head" onclick="tog(${t.id})">
+    ${t._new?'<span style="color:var(--np);font-size:13px">★</span>':''}
+    <span class="badge ${bc(t)}">${bl(t)}</span>
+    <div class="card-info"><div class="card-title">${t.titulo}</div><div class="card-sub">${t.sub}</div></div>
+    <span class="badge b-gray" style="font-size:11px">${tl(t)}</span>
+    <span class="chevron${o?" open":""}">▼</span>
+  </div>
+  ${o?`<div class="card-body">
+    <div class="tpl-box ${t.cor||''}">${t.tpl}</div>
+    <div class="act-row">
+      <button class="copy-btn" id="cb${t.id}" onclick="cpT(${t.id},this)">Copiar template</button>
+      ${del?`<button class="del-btn" onclick="delT(${t.id})">Excluir</button>`:''}
+      ${t.vars&&t.vars.length?'<span style="font-size:12px;color:var(--text3)">Substituir:</span>':''}
+    </div>
+    ${t.vars&&t.vars.length?`<div class="vars-row">${t.vars.map(v=>`<span class="var-chip">${v}</span>`).join("")}</div>`:''}
+    ${t.notas?`<div class="hr"></div><div class="note-lbl">Orientações</div><div class="notes">${t.notas}</div>`:''}
+  </div>`:''}
+  </div>`;
+}
+function render(){
+  buildF();const lista=filtrar();const tot=allT().length;
+  document.getElementById("stats").textContent=lista.length===tot?`${tot} templates disponíveis`:`${lista.length} de ${tot} templates`;
+  const c=document.getElementById("cards");
+  c.innerHTML=lista.length?lista.map(t=>cHTML(t,t._new)).join(""):'<div class="empty">Nenhum template encontrado.</div>';
+  rNewTab();updNC();
+}
+function rNewTab(){
+  const c=document.getElementById("new-cards");
+  c.innerHTML=uTpls.length?uTpls.map(t=>cHTML(t,true)).join(''):'<div class="empty">Nenhum template adicionado ainda.</div>';
+}
+function updNC(){document.getElementById("new-count").textContent=uTpls.length;}
+function tog(id){abertos.has(id)?abertos.delete(id):abertos.add(id);render();}
+function cpT(id,btn){
+  const t=allT().find(x=>x.id===id);
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(t.tpl).then(()=>{btn.textContent="Copiado!";btn.classList.add("copied");setTimeout(()=>{btn.textContent="Copiar template";btn.classList.remove("copied");},1800);});
+  } else {
+    const ta=document.createElement("textarea");ta.value=t.tpl;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+    btn.textContent="Copiado!";btn.classList.add("copied");setTimeout(()=>{btn.textContent="Copiar template";btn.classList.remove("copied");},1800);
+  }
+}
+function delT(id){uTpls=uTpls.filter(t=>t.id!==id);abertos.delete(id);render();}
+function sw(t){
+  ["lib","new","add","dash"].forEach(id=>{
+    document.getElementById("pane-"+id).classList.toggle("active",id===t);
+    const tab=document.getElementById("tab-"+id);if(tab)tab.classList.toggle("active",id===t);
+  });
+  if(t==="dash")rDash();if(t==="new")rNewTab();
+}
+function updPrev(){
+  const ab=document.getElementById("f-ab").value.trim();
+  const bo=document.getElementById("f-body").value.trim();
+  const cl=document.getElementById("f-close").value.trim();
+  document.getElementById("prev").textContent=[ab,bo,cl].filter(Boolean).join("\n\n")||"Preencha os campos acima para visualizar.";
+}
+["f-ab","f-body","f-close"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",updPrev);});
+function saveTpl(){
+  const titulo=document.getElementById("f-titulo").value.trim();
+  const co=document.getElementById("f-body").value.trim();
+  if(!titulo||!co){alert("Preencha pelo menos o título e a mensagem principal.");return;}
+  const tpl=[document.getElementById("f-ab").value.trim(),co,document.getElementById("f-close").value.trim()].filter(Boolean).join("\n\n");
+  const vars=[...tpl.matchAll(/\[[^\]]+\]/g)].map(m=>m[0]).filter((v,i,a)=>a.indexOf(v)===i);
+  uTpls.unshift({id:nId++,canal:document.getElementById("f-canal").value,tema:document.getElementById("f-tema").value,titulo,sub:document.getElementById("f-sub").value.trim()||"Template criado pela equipe",tpl,vars,notas:document.getElementById("f-notas").value.trim(),_new:true,cor:"pink"});
+  updNC();render();const toast=document.getElementById("toast");toast.style.display="flex";setTimeout(()=>{toast.style.display="none";},3000);clearForm();
+}
+function clearForm(){
+  ["f-titulo","f-sub","f-body","f-notas"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("f-ab").value="Olá, [Nome]! Tudo bem?\n\nObrigado(a) por entrar em contato com a equipe de suporte da ORAYON. Estou aqui para te ajudar.";
+  document.getElementById("f-close").value="Ficou claro? Qualquer outra dúvida, estou à disposição!\n\n[Assinatura padrão]";
+  document.getElementById("prev").textContent="Preencha os campos acima para visualizar.";
+}
+function addLog(){
+  const canal=document.getElementById("log-canal").value;
+  const att=document.getElementById("log-att").value.trim()||"—";
+  const prot=document.getElementById("log-prot").value.trim()||"—";
+  const tempo=parseInt(document.getElementById("log-tempo").value)||0;
+  if(!tempo){alert("Informe o tempo em minutos.");return;}
+  const sla=SLA_MAP[canal]||60;const pct=tempo/sla;
+  const status=pct<=0.75?"ok":pct<=1?"warn":"danger";
+  logData.push({canal,att,prot,tempo,sla,status,label:SLA_LABELS[canal]||canal});
+  ["log-att","log-prot","log-tempo"].forEach(id=>document.getElementById(id).value="");
+  rDash();
+}
+function clearLog(){if(confirm("Limpar todos os dados do dashboard?")){logData=[];rDash();}}
+function rDash(){
+  const tot=logData.length,ok=logData.filter(x=>x.status==="ok").length,warn=logData.filter(x=>x.status==="warn").length,danger=logData.filter(x=>x.status==="danger").length;
+  const pOk=tot?Math.round(ok/tot*100):0;
+  document.getElementById("dash-metrics").innerHTML=`
+    <div class="metric"><div class="metric-label">Total registrado</div><div class="metric-val mv-n">${tot}</div><div class="metric-sub">atendimentos</div></div>
+    <div class="metric"><div class="metric-label">Dentro do SLA</div><div class="metric-val mv-ok">${ok}</div><div class="metric-sub">${pOk}%</div></div>
+    <div class="metric"><div class="metric-label">Atenção (75–100%)</div><div class="metric-val mv-warn">${warn}</div><div class="metric-sub">${tot?Math.round(warn/tot*100):0}%</div></div>
+    <div class="metric"><div class="metric-label">SLA ultrapassado</div><div class="metric-val mv-danger">${danger}</div><div class="metric-sub">${tot?Math.round(danger/tot*100):0}%</div></div>
+    <div class="metric"><div class="metric-label">Taxa de sucesso</div><div class="metric-val ${pOk>=80?"mv-ok":pOk>=60?"mv-warn":"mv-danger"}">${pOk}%</div><div class="metric-sub">meta ≥ 80%</div></div>
+  `;
+  const canais={};logData.forEach(x=>{if(!canais[x.canal])canais[x.canal]={ok:0,total:0,label:x.label};canais[x.canal].total++;if(x.status==="ok")canais[x.canal].ok++;});
+  document.getElementById("dash-bars").innerHTML=Object.values(canais).map(c=>{
+    const p=c.total?Math.round(c.ok/c.total*100):0,col=p>=80?"#166534":p>=60?"#854F0B":"#991B1B";
+    return`<div class="bar-row"><div class="bar-label">${c.label.split(" ")[0]}</div><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${col}"></div></div><div class="bar-pct">${p}%</div></div>`;
+  }).join("")||'<div style="font-size:12px;color:var(--text3);padding:8px 0">Registre atendimentos para ver dados.</div>';
+  const r=48,cx=60,cy=60,circ=2*Math.PI*r;
+  const segs=tot?[{p:ok/tot,c:"#166534",l:"Dentro do SLA"},{p:warn/tot,c:"#854F0B",l:"Atenção"},{p:danger/tot,c:"#991B1B",l:"Ultrapassado"}]:[{p:1,c:"#E5E7EB",l:""}];
+  let off=0;const paths=segs.map(s=>{const d=s.p*circ,pg=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.c}" stroke-width="16" stroke-dasharray="${d} ${circ-d}" stroke-dashoffset="${-off*circ}" transform="rotate(-90 ${cx} ${cy})"/>`;off+=s.p;return pg;}).join("");
+  const legend=segs.filter(s=>s.c!=="#E5E7EB").map(s=>`<div class="dl-item"><div class="dl-dot" style="background:${s.c}"></div>${s.l}</div>`).join("");
+  document.getElementById("dash-donut").innerHTML=`<svg width="120" height="120" viewBox="0 0 120 120"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="16"/>${paths}<text x="${cx}" y="${cy}" text-anchor="middle" dy=".35em" style="font-size:16px;font-weight:600;fill:var(--text)">${pOk}%</text></svg><div class="donut-legend">${legend||'<div class="dl-item" style="color:var(--text3)">Sem dados</div>'}</div>`;
+  const tbody=document.getElementById("log-body"),empty=document.getElementById("log-empty");
+  if(!logData.length){tbody.innerHTML="";empty.style.display="block";return;}
+  empty.style.display="none";
+  tbody.innerHTML=[...logData].reverse().map(x=>{
+    const sc=x.status==="ok"?"sp-ok":x.status==="warn"?"sp-warn":"sp-danger";
+    const sl=x.status==="ok"?"Dentro do SLA":x.status==="warn"?"Atenção":"Ultrapassado";
+    return`<tr><td>${x.prot}</td><td style="font-size:11px">${x.label}</td><td>${x.att}</td><td>${x.tempo}min (${Math.round(x.tempo/x.sla*100)}%)</td><td style="font-size:11px;color:var(--text3)">${x.sla}min</td><td><span class="sp ${sc}">${sl}</span></td></tr>`;
+  }).join("");
+}
+buildF();render();rDash();
+
+// ── SERVICE WORKER ──────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(r=>console.log('SW registered',r)).catch(e=>console.log('SW error',e));
+  });
+}
+</script>
+</body>
+</html>
