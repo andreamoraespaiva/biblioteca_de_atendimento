@@ -126,6 +126,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* ── FORM ── */
 .form-wrap{display:flex;flex-direction:column;gap:13px}
+.canal-group{display:flex;gap:7px;flex-wrap:wrap}
+.canal-opt{display:flex;align-items:center;gap:7px;padding:7px 12px;border:0.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:var(--surface);transition:all .15s;user-select:none}
+.canal-opt:hover{border-color:var(--cs)}
+.canal-opt.selected{border-color:var(--cs);background:#eaecfd}
+.c-dot{width:13px;height:13px;border-radius:3px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.canal-opt.selected .c-dot{background:var(--cs);border-color:var(--cs)}
+.c-chk{color:#fff;font-size:9px;font-weight:700;display:none}
+.canal-opt.selected .c-chk{display:block}
+.canal-lbl{font-size:13px;color:var(--text)}
+.canal-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;min-height:16px}
+.canal-err{font-size:12px;color:#A32D2D;display:none;margin-top:3px}
+.tema-row{display:flex;gap:7px;align-items:flex-start}
+.tema-row select{flex:1;padding:8px 11px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);font-family:var(--font)}
+.tema-row select:focus{outline:none;border-color:var(--cs)}
+.new-tema-btn{padding:8px 12px;border:0.5px solid var(--cs);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:#eaecfd;color:var(--cs);white-space:nowrap;font-weight:500;transition:all .15s;flex-shrink:0}
+.new-tema-btn:hover{background:var(--cs);color:#fff}
+.new-tema-form{display:none;gap:7px;align-items:center;flex-wrap:wrap;margin-top:5px;padding:9px 11px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-sm)}
+.new-tema-form.show{display:flex}
+.new-tema-form input{flex:1;min-width:130px;padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:var(--font)}
+.new-tema-form input:focus{outline:none;border-color:var(--cs)}
+.save-tema-btn{padding:7px 12px;background:var(--np);border:none;border-radius:var(--radius-sm);color:#fff;font-size:12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.cancel-tema-btn{padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:transparent;color:var(--text2)}
+.tema-hint{font-size:11px;color:var(--ok);margin-top:3px;min-height:14px}
+.vars-hint{font-size:11px;color:var(--text3);margin-top:3px}
+.vars-row2{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
 .form-title{font-size:15px;font-weight:500;color:var(--text)}
 .form-sub{font-size:12px;color:var(--text2);margin-top:3px}
 .field{display:flex;flex-direction:column;gap:4px}
@@ -232,22 +257,75 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- ADICIONAR -->
   <div class="pane" id="pane-add">
     <div class="form-wrap">
-      <div><div class="form-title">Criar novo template</div><div class="form-sub">Abertura e fechamento já pré-montados e editáveis. Preencha a mensagem principal.</div></div>
-      <div class="frow">
-        <div class="field" style="flex:2"><label>Título</label><input type="text" id="f-titulo" placeholder="Ex: Dúvida sobre comissão de upgrade"></div>
-        <div class="field"><label>Canal</label><select id="f-canal"><option value="chat">Chat / WA / Direct</option><option value="email">E-mail</option><option value="ticket">Ticket</option></select></div>
-        <div class="field"><label>Tema</label><select id="f-tema"><option value="geral">Geral</option><option value="marca">Marca & Logo</option><option value="conduta">Conduta & Rede</option><option value="flags">Flags</option><option value="notif">Notificações</option><option value="denuncia">Denúncias</option></select></div>
+      <div><div class="form-title">Criar novo template</div><div class="form-sub">Abertura e fechamento já pré-montados e editáveis. Campos com <span style="color:var(--np)">*</span> são obrigatórios.</div></div>
+
+      <div class="field" style="flex:1">
+        <label>Título <span style="color:var(--np)">*</span></label>
+        <input type="text" id="f-titulo" placeholder="Ex: Dúvida sobre comissão de upgrade">
       </div>
-      <div class="field"><label>Descrição curta</label><input type="text" id="f-sub" placeholder="Quando usar este template"></div>
+      <div class="field">
+        <label>Descrição curta — quando usar este template</label>
+        <input type="text" id="f-sub" placeholder="Ex: Franqueado pergunta sobre comissão ao fazer upgrade de cliente">
+      </div>
+
+      <div class="field">
+        <label>Canal de atendimento <span style="color:var(--np)">*</span> <span style="font-weight:400;color:var(--text3);font-size:11px">(selecione um ou mais)</span></label>
+        <div class="canal-group">
+          <div class="canal-opt" id="opt-chat" onclick="togCanal('chat')">
+            <div class="c-dot"><span class="c-chk">✓</span></div>
+            <span class="canal-lbl">Chat / WA / Direct</span>
+          </div>
+          <div class="canal-opt" id="opt-email" onclick="togCanal('email')">
+            <div class="c-dot"><span class="c-chk">✓</span></div>
+            <span class="canal-lbl">E-mail</span>
+          </div>
+          <div class="canal-opt" id="opt-ticket" onclick="togCanal('ticket')">
+            <div class="c-dot"><span class="c-chk">✓</span></div>
+            <span class="canal-lbl">Ticket</span>
+          </div>
+        </div>
+        <div class="canal-badges" id="canal-badges"></div>
+        <div class="canal-err" id="canal-err">Selecione pelo menos um canal.</div>
+      </div>
+
+      <div class="field">
+        <label>Tema <span style="color:var(--np)">*</span></label>
+        <div class="tema-row">
+          <select id="f-tema">
+            <option value="geral">Geral</option>
+            <option value="marca">Marca &amp; Logo</option>
+            <option value="conduta">Conduta &amp; Rede</option>
+            <option value="flags">Flags</option>
+            <option value="notif">Notificações</option>
+            <option value="denuncia">Denúncias</option>
+          </select>
+          <button class="new-tema-btn" onclick="showNewTema()">+ Novo tema</button>
+        </div>
+        <div class="new-tema-form" id="new-tema-form">
+          <input type="text" id="new-tema-input" placeholder="Nome do novo tema... ex: Financeiro">
+          <button class="save-tema-btn" onclick="saveNewTema()">Criar tema</button>
+          <button class="cancel-tema-btn" onclick="cancelNewTema()">Cancelar</button>
+        </div>
+        <div class="tema-hint" id="tema-hint"></div>
+      </div>
+
       <div class="field"><label>Abertura</label><textarea id="f-ab" rows="3" oninput="updPrev()">Olá, [Nome]! Tudo bem?
 
 Obrigado(a) por entrar em contato com a equipe de suporte da ORAYON. Estou aqui para te ajudar.</textarea></div>
-      <div class="field"><label>Mensagem principal</label><textarea id="f-body" rows="6" placeholder="Use [colchetes] para campos que o atendente deve preencher." oninput="updPrev()"></textarea></div>
+      <div class="field">
+        <label>Mensagem principal <span style="color:var(--np)">*</span></label>
+        <textarea id="f-body" rows="6" placeholder="Use [colchetes] para campos que o atendente deve preencher." oninput="updPrev()"></textarea>
+        <div class="vars-hint" id="vars-hint"></div>
+      </div>
       <div class="field"><label>Fechamento</label><textarea id="f-close" rows="3" oninput="updPrev()">Ficou claro? Qualquer outra dúvida, estou à disposição!
 
 [Assinatura padrão]</textarea></div>
-      <div class="field"><label>Orientações ao atendente (opcional)</label><input type="text" id="f-notas" placeholder="Ex: Citar sempre a Aula 6.3."></div>
-      <div class="field"><label>Pré-visualização</label><div class="prev-box" id="prev">Preencha os campos acima para visualizar.</div></div>
+      <div class="field"><label>Orientações ao atendente <span style="font-weight:400;color:var(--text3)">(opcional)</span></label><input type="text" id="f-notas" placeholder="Ex: Citar sempre a Aula 6.3."></div>
+      <div class="field">
+        <label>Pré-visualização</label>
+        <div class="prev-box" id="prev">Preencha os campos acima para visualizar.</div>
+        <div class="vars-row2" id="vars-row2"></div>
+      </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="save-btn" onclick="saveTpl()">Salvar template</button>
         <button class="clear-btn" onclick="clearForm()">Limpar</button>
@@ -428,20 +506,50 @@ function sw(t){
   });
   if(t==="dash")rDash();if(t==="new")rNewTab();
 }
+let canaisSel=new Set();
+const CANAL_LBL={chat:"Chat/WA",email:"E-mail",ticket:"Ticket"};
+const CANAL_BDG={chat:"b-chat",email:"b-email",ticket:"b-ticket"};
+function togCanal(c){
+  const opt=document.getElementById("opt-"+c);
+  if(canaisSel.has(c)){canaisSel.delete(c);opt.classList.remove("selected");}
+  else{canaisSel.add(c);opt.classList.add("selected");}
+  const row=document.getElementById("canal-badges");
+  row.innerHTML=[...canaisSel].map(x=>`<span class="badge ${CANAL_BDG[x]}">${CANAL_LBL[x]}</span>`).join("");
+  document.getElementById("canal-err").style.display="none";
+}
+function showNewTema(){document.getElementById("new-tema-form").classList.add("show");document.getElementById("new-tema-input").focus();}
+function cancelNewTema(){document.getElementById("new-tema-form").classList.remove("show");document.getElementById("new-tema-input").value="";}
+function saveNewTema(){
+  const v=document.getElementById("new-tema-input").value.trim();
+  if(!v){alert("Digite o nome do novo tema.");return;}
+  const k=v.toLowerCase().replace(/\s+/g,"-");
+  const sel=document.getElementById("f-tema");
+  if([...sel.options].some(o=>o.value===k)){alert("Esse tema já existe.");return;}
+  const opt=document.createElement("option");opt.value=k;opt.textContent=v;opt.selected=true;sel.appendChild(opt);
+  const h=document.getElementById("tema-hint");h.textContent=`Tema "${v}" criado e selecionado.`;
+  cancelNewTema();setTimeout(()=>{h.textContent="";},3000);
+}
 function updPrev(){
   const ab=document.getElementById("f-ab").value.trim();
   const bo=document.getElementById("f-body").value.trim();
   const cl=document.getElementById("f-close").value.trim();
-  document.getElementById("prev").textContent=[ab,bo,cl].filter(Boolean).join("\n\n")||"Preencha os campos acima para visualizar.";
+  const full=[ab,bo,cl].filter(Boolean).join("\n\n");
+  document.getElementById("prev").textContent=full||"Preencha os campos acima para visualizar.";
+  const vars=full?[...full.matchAll(/\[[^\]]+\]/g)].map(m=>m[0]).filter((v,i,a)=>a.indexOf(v)===i):[];
+  document.getElementById("vars-row2").innerHTML=vars.map(v=>`<span class="var-chip">${v}</span>`).join("");
+  document.getElementById("vars-hint").textContent=bo?(vars.length?`${vars.length} variável(is) detectada(s).`:"Nenhuma variável [colchete] detectada."):"";
 }
 ["f-ab","f-body","f-close"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",updPrev);});
 function saveTpl(){
   const titulo=document.getElementById("f-titulo").value.trim();
   const co=document.getElementById("f-body").value.trim();
   if(!titulo||!co){alert("Preencha pelo menos o título e a mensagem principal.");return;}
+  if(canaisSel.size===0){document.getElementById("canal-err").style.display="block";return;}
   const tpl=[document.getElementById("f-ab").value.trim(),co,document.getElementById("f-close").value.trim()].filter(Boolean).join("\n\n");
   const vars=[...tpl.matchAll(/\[[^\]]+\]/g)].map(m=>m[0]).filter((v,i,a)=>a.indexOf(v)===i);
-  uTpls.unshift({id:nId++,canal:document.getElementById("f-canal").value,tema:document.getElementById("f-tema").value,titulo,sub:document.getElementById("f-sub").value.trim()||"Template criado pela equipe",tpl,vars,notas:document.getElementById("f-notas").value.trim(),_new:true,cor:"pink"});
+  const canalPrimario=[...canaisSel][0];
+  const sel=document.getElementById("f-tema");
+  uTpls.unshift({id:nId++,canal:canalPrimario,canaisAll:[...canaisSel],tema:sel.value,temaLabel:sel.options[sel.selectedIndex].textContent,titulo,sub:document.getElementById("f-sub").value.trim()||"Template criado pela equipe",tpl,vars,notas:document.getElementById("f-notas").value.trim(),_new:true,cor:"pink"});
   updNC();render();const toast=document.getElementById("toast");toast.style.display="flex";setTimeout(()=>{toast.style.display="none";},3000);clearForm();
 }
 function clearForm(){
@@ -449,6 +557,12 @@ function clearForm(){
   document.getElementById("f-ab").value="Olá, [Nome]! Tudo bem?\n\nObrigado(a) por entrar em contato com a equipe de suporte da ORAYON. Estou aqui para te ajudar.";
   document.getElementById("f-close").value="Ficou claro? Qualquer outra dúvida, estou à disposição!\n\n[Assinatura padrão]";
   document.getElementById("prev").textContent="Preencha os campos acima para visualizar.";
+  document.getElementById("vars-row2").innerHTML="";
+  document.getElementById("vars-hint").textContent="";
+  canaisSel.clear();
+  ["chat","email","ticket"].forEach(c=>document.getElementById("opt-"+c).classList.remove("selected"));
+  document.getElementById("canal-badges").innerHTML="";
+  document.getElementById("canal-err").style.display="none";
 }
 function addLog(){
   const canal=document.getElementById("log-canal").value;
