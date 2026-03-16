@@ -436,17 +436,23 @@ function updTimer(){
 }
 
 // ── GOOGLE SHEETS API ─────────────────────────────────────────────
-async function sheetsGet(action){
+async function sheetsGet(action,extra={}){
   try{
-    const r=await fetch(`${SHEETS_URL}?action=${action}`);
-    return await r.json();
+    let qs='action='+encodeURIComponent(action);
+    Object.entries(extra).forEach(([k,v])=>{qs+='&'+k+'='+encodeURIComponent(typeof v==='object'?JSON.stringify(v):v);});
+    const r=await fetch(`${SHEETS_URL}?${qs}`,{redirect:'follow'});
+    const text=await r.text();
+    return JSON.parse(text);
   }catch(e){console.error('Sheets GET error:',e);return null;}
 }
 async function sheetsPost(data){
   try{
-    const r=await fetch(SHEETS_URL,{method:'POST',body:JSON.stringify(data)});
-    return await r.json();
-  }catch(e){console.error('Sheets POST error:',e);return null;}
+    const action=encodeURIComponent(data.action);
+    const payload=encodeURIComponent(JSON.stringify(data));
+    const r=await fetch(`${SHEETS_URL}?action=${action}&payload=${payload}`,{redirect:'follow'});
+    const text=await r.text();
+    return JSON.parse(text);
+  }catch(e){console.error('Sheets error:',e);return null;}
 }
 
 // ── STATE ─────────────────────────────────────────────────────────
