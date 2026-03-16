@@ -436,23 +436,30 @@ function updTimer(){
 }
 
 // ── GOOGLE SHEETS API ─────────────────────────────────────────────
-async function sheetsGet(action,extra={}){
-  try{
-    let qs='action='+encodeURIComponent(action);
+function sheetsCall(action,extra={}){
+  return new Promise((resolve)=>{
+    const cb='_gs_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    let qs='action='+encodeURIComponent(action)+'&callback='+cb;
     Object.entries(extra).forEach(([k,v])=>{qs+='&'+k+'='+encodeURIComponent(typeof v==='object'?JSON.stringify(v):v);});
-    const r=await fetch(`${SHEETS_URL}?${qs}`,{redirect:'follow'});
-    const text=await r.text();
-    return JSON.parse(text);
-  }catch(e){console.error('Sheets GET error:',e);return null;}
+    window[cb]=(data)=>{
+      delete window[cb];
+      document.getElementById('_gscript_'+cb)?.remove();
+      resolve(data);
+    };
+    const s=document.createElement('script');
+    s.id='_gscript_'+cb;
+    s.src=SHEETS_URL+'?'+qs;
+    s.onerror=()=>{delete window[cb];s.remove();resolve(null);};
+    document.head.appendChild(s);
+    setTimeout(()=>{if(window[cb]){delete window[cb];s.remove();resolve(null);}},10000);
+  });
+}
+async function sheetsGet(action,extra={}){
+  return await sheetsCall(action,extra);
 }
 async function sheetsPost(data){
-  try{
-    const action=encodeURIComponent(data.action);
-    const payload=encodeURIComponent(JSON.stringify(data));
-    const r=await fetch(`${SHEETS_URL}?action=${action}&payload=${payload}`,{redirect:'follow'});
-    const text=await r.text();
-    return JSON.parse(text);
-  }catch(e){console.error('Sheets error:',e);return null;}
+  const extra={payload:JSON.stringify(data)};
+  return await sheetsCall(data.action,extra);
 }
 
 // ── STATE ─────────────────────────────────────────────────────────
@@ -487,9 +494,7 @@ async function init(){
   allTemplates=tpls.map(t=>({
     ...t,
     id:t.id||String(nId++),
-    tpl:[t.abertura,t.corpo,t.fechamento].filter(Boolean).join('
-
-'),
+    tpl:[t.abertura,t.corpo,t.fechamento].filter(Boolean).join('\n\n'),
     canais:Array.isArray(t.canais)?t.canais:(t.canal?[t.canal]:[]),
     _new:t.tipo==='custom',
   }));
