@@ -399,11 +399,14 @@ Obrigado(a) por entrar em contato com a equipe de suporte da ORAYON. Estou aqui 
 </div>
 
 <script>
-// ── SLA MAP ──────────────────────────────────────────────────────
+// ── CONFIG — cole sua URL do Apps Script aqui após publicar ──────
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzUgCgHbBksn1r53Rtu9nuLV6XS1LLTAIEva8QFLn__0NZ5dUlb-aKrBySFverJw_Oy/exec';
+
+// ── SLA MAP ───────────────────────────────────────────────────────
 const SLA_MAP={chat:30,"email-geral":960,"email-aprov":1440,"email-den":480,"ticket-acuse":240,"ticket-rec":2400,"ticket-transf":3360,"ticket-flag":960};
 const SLA_LABELS={chat:"Chat / WA","email-geral":"E-mail Dúvida","email-aprov":"E-mail Aprovação","email-den":"E-mail Denúncia","ticket-acuse":"Ticket Acuse","ticket-rec":"Ticket Recadastro","ticket-transf":"Ticket Transferência","ticket-flag":"Ticket Flag"};
 
-// ── TIMER ────────────────────────────────────────────────────────
+// ── TIMER ─────────────────────────────────────────────────────────
 let tRun=false,tSec=0,tSLA=0,tInt=null;
 function timerReset(){if(tRun)timerStop();tSec=0;updTimer();}
 function timerToggle(){tRun?timerStop():timerStart();}
@@ -432,58 +435,81 @@ function updTimer(){
   else{el.className="timer-display t-ok";dot.className="pulse";}
 }
 
-// ── TEMPLATES ────────────────────────────────────────────────────
-const BASE=[
-  {id:1,canal:"chat",tema:"geral",titulo:"Abertura padrão — chat / WhatsApp / direct",sub:"Toda primeira mensagem via chat, WhatsApp, direct ou redes sociais",vars:["[Nome]"],notas:"Tom leve e acolhedor. Sem formalidade excessiva.",tpl:"Olá, [Nome]! Tudo bem?\n\nMe chamo [Seu Nome] e faço parte da equipe de suporte da ORAYON. Estou aqui para te ajudar!\n\nComo posso te auxiliar hoje?",cor:"teal"},
-  {id:2,canal:"chat",tema:"geral",titulo:"Confirmação da demanda — chat",sub:"Antes de responder — confirmar o que foi entendido",vars:["[resumo da dúvida]"],notas:"Sempre confirmar antes de responder, mesmo no chat.",tpl:"Entendi! Só para garantir que vou te ajudar da forma certa:\n\nVocê quer saber [resumo da dúvida], certo?\n\nSe eu entendi diferente, é só me corrigir!",cor:"teal"},
-  {id:3,canal:"chat",tema:"geral",titulo:"Encerramento — chat / WhatsApp / direct",sub:"Final de todo atendimento via chat, WhatsApp, direct",vars:["[Nome]"],notas:"Reforçar canal oficial para dúvidas mais complexas.",tpl:"Fico à disposição para qualquer outra dúvida, [Nome]! Foi um prazer te ajudar.\n\nSe precisar de algo mais elaborado, pode nos escrever pelo e-mail compliance@orayon.ai.\n\nBons negócios!",cor:"teal"},
-  {id:4,canal:"email",tema:"marca",titulo:"Dúvida sobre uso do nome / logo ORAYON",sub:"Franqueado pergunta o que pode ou não usar",vars:["[Nome]","[nome/logo/id. visual]","[permitido]","[proibido]"],notas:"Citar Aula 6.1. Lembrar do processo de aprovação.",tpl:"Olá, [Nome]! Tudo bem?\n\nObrigado(a) por consultar antes de publicar!\n\nSobre o uso [do nome / do logo / da identidade visual] da ORAYON, conforme o Manual de Compliance (Aula 6.1):\n\n✅ O que é permitido: [descrever]\n❌ O que não é permitido: [descrever]\n\nCaso queira usar material com a identidade visual da ORAYON, envie para compliance@orayon.ai e aguarde a aprovação. Só publique após a confirmação oficial.\n\n[Assinatura padrão]"},
-  {id:5,canal:"email",tema:"marca",titulo:"Aprovação de material com logo/marca",sub:"Franqueado enviou material para análise",vars:["[Nome]"],notas:"Prazo: 3 dias úteis. Aprovação só por e-mail — nunca verbal.",tpl:"Olá, [Nome]! Tudo bem?\n\nRecebi seu material para análise. Nossa equipe verificará se está de acordo com o Manual de Marca oficial da ORAYON.\n\nPrazo de retorno: até 3 dias úteis. Resultado: aprovado, aprovado com ajustes ou reprovado (com orientações).\n\n⚠️ Não publique antes de receber a aprovação formal. Publicação sem aprovação configura infração (Aula 6.1) e pode gerar flag amarela.\n\n[Assinatura padrão]"},
-  {id:6,canal:"email",tema:"notif",titulo:"Notificação de posicionamento incorreto",sub:"Conteúdo apresentando ORAYON como MLM ou venda direta",vars:["[Nome]","[canal/plataforma]","[trecho]"],notas:"Prazo: 24–72h. Citar Aula 6.1 — Seção 5.",tpl:"Olá, [Nome]! Tudo bem?\n\nIdentificamos em [canal/plataforma] um conteúdo incompatível com as diretrizes de posicionamento (Aula 6.1 — Seção 5).\n\nPonto identificado:\n[Descrever o conteúdo ou trecho]\n\nAjuste necessário:\nA ORAYON deve ser apresentada como empresa de educação e tecnologia em IA com modelo de franquia digital — nunca como MLM, venda direta ou esquema de ganho fácil.\n\nPrazo para ajuste: 24 a 72 horas.\n\nApós ajustar, confirme respondendo este e-mail.\n\n[Assinatura para notificações]",cor:"amber"},
-  {id:7,canal:"email",tema:"denuncia",titulo:"Confirmação de recebimento de denúncia",sub:"Após receber denúncia de aliciamento, fraude ou infração grave",vars:["[Nome]","[XXXX]"],notas:"Prioridade máxima. Escalar imediatamente. SLA: 1 dia útil.",tpl:"Olá, [Nome]! Tudo bem?\n\nAgradecemos por trazer essa situação ao nosso conhecimento. Sua denúncia foi registrada com protocolo [XXXX] e será analisada com prioridade.\n\nInformações importantes:\n• Todas as denúncias são tratadas com sigilo.\n• Prazo de retorno inicial: até 1 dia útil.\n• Caso necessite de mais tempo, você será informado(a).\n\nObrigado(a) por contribuir para a saúde do ecossistema ORAYON.\n\n[Assinatura para escaladas — protocolo [XXXX]]",cor:"red"},
-  {id:8,canal:"email",tema:"geral",titulo:"Resposta negativa — demanda não autorizada",sub:"Quando a solicitação não pode ser atendida",vars:["[Nome]","[Aula X.X]","[motivo]","[alternativa]"],notas:"Sempre oferecer alternativa permitida quando existir.",tpl:"Olá, [Nome]! Tudo bem?\n\nObrigado(a) por entrar em contato. Analisamos sua solicitação com atenção.\n\nApós verificar as diretrizes do Manual de Compliance (Aula X.X), precisamos informar que [a prática / material / ação] não está de acordo com as nossas regras porque:\n\n[Motivo claro e respeitoso]\n\nO que você pode fazer:\n[Alternativa permitida]\n\nEstamos aqui para apoiar!\n\n[Assinatura padrão]"},
-  {id:9,canal:"email",tema:"geral",titulo:"Escalada — demanda fora do manual",sub:"Quando a resposta exige análise do compliance",vars:["[Nome]","[X dias úteis]"],notas:"Nunca improvisar. Se não está no manual, escalar.",tpl:"Olá, [Nome]! Tudo bem?\n\nRecebi sua solicitação e vou encaminhar para análise da nossa equipe de compliance.\n\nVocê receberá um retorno em até [X dias úteis] pelo e-mail compliance@orayon.ai.\n\n[Assinatura para escaladas]",cor:"amber"},
-  {id:10,canal:"ticket",tema:"geral",titulo:"Acuse de recebimento — ticket",sub:"Primeira resposta — até 4h úteis",vars:["[Nome]","[XXXX]","[tipo]","[prazo]"],notas:"Obrigatório em todo ticket. Máximo 4 horas úteis.",tpl:"Olá, [Nome]! Tudo bem?\n\nRecebi seu ticket com protocolo [XXXX]. Sua solicitação foi classificada como [tipo] e será analisada em até [prazo].\n\nFique tranquilo(a) — acompanharemos seu caso até a resolução completa!\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"teal"},
-  {id:11,canal:"ticket",tema:"geral",titulo:"Resolução de ticket",sub:"Resposta com resolução, base no manual e próximos passos",vars:["[Nome]","[XXXX]","[situação]","[resolução]","[próximos passos]"],notas:"Só marcar como resolvido após confirmação do franqueado.",tpl:"Olá, [Nome]! Tudo bem?\n\nAnalisamos sua solicitação (Protocolo [XXXX]):\n\n📋 Situação:\n[Descrever]\n\n✅ Resolução:\n[Com base no manual]\n\n📌 Próximos passos:\n[Ações necessárias]\n\nQualquer dúvida pode ser incluída neste mesmo ticket.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"teal"},
-  {id:12,canal:"ticket",tema:"geral",titulo:"Negativa de ticket",sub:"Quando a solicitação não pode ser processada",vars:["[Nome]","[XXXX]","[Aula X.X]","[motivo]"],notas:"Citar o manual. Oferecer contestação via e-mail.",tpl:"Olá, [Nome]! Tudo bem?\n\nAnalisamos sua solicitação (Protocolo [XXXX]).\n\nApós verificar o Manual de Compliance (Aula X.X), identificamos que [a solicitação] não pode ser processada porque:\n\n[Motivo baseado no manual]\n\nO que você pode fazer:\n[Alternativa permitida]\n\nPara contestar, encaminhe para compliance@orayon.ai com o protocolo [XXXX].\n\n[Nome do Atendente] | Equipe de Suporte ORAYON"},
-  {id:13,canal:"ticket",tema:"geral",titulo:"Escalada de ticket",sub:"Ticket que exige análise mais profunda",vars:["[Nome]","[XXXX]","[X dias úteis]"],notas:"Manter o ticket aberto. Nunca fechar sem resolução.",tpl:"Olá, [Nome]! Tudo bem?\n\nSua solicitação (Protocolo [XXXX]) requer análise aprofundada da equipe de compliance.\n\nRetorno em até [X dias úteis]. Não encerre este ticket.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"amber"},
-  {id:14,canal:"ticket",tema:"conduta",titulo:"Recadastro — parceiro sem rede (Cenário 1)",sub:"Franqueado sem equipe quer trocar de equipe",vars:["[Nome]","[XXXX]"],notas:"60 dias de desengajamento. Só 1 vez. Perda total de acesso.",tpl:"Protocolo [XXXX] | Recadastro — Parceiro sem rede\n\nOlá, [Nome]! Tudo bem?\n\nConforme o Manual de Compliance (Aula 6.2 — Cenário 1), para prosseguir confirme:\n\n[ ] Sem franqueados nem clientes vinculados à sua órbita\n[ ] 60 dias consecutivos de desengajamento operacional\n\n⚠️ Ao cancelar: perda total de acesso (plataforma, cursos, ferramentas, backoffice). Novo cadastro exige aquisição completa do combo.\n\nEssa troca só pode ser realizada UMA única vez. Confirme respondendo este ticket.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"amber"},
-  {id:15,canal:"ticket",tema:"conduta",titulo:"Recadastro — parceiro com rede (Cenário 2)",sub:"Franqueado com equipe quer trocar de equipe",vars:["[Nome]","[XXXX]"],notas:"6 meses de inatividade. Equipe não acompanha. Só 1 vez.",tpl:"Protocolo [XXXX] | Recadastro — Parceiro com rede\n\nOlá, [Nome]! Tudo bem?\n\nComo você possui franqueados ou clientes na sua órbita, aplicam-se as regras do Cenário 2 (Aula 6.2):\n\n[ ] Perda total de acesso ao cancelar\n[ ] Equipe NÃO acompanha\n[ ] Inatividade obrigatória: 6 meses (180 dias)\n[ ] Novo cadastro com aquisição completa do combo\n[ ] Só pode ser feito UMA única vez\n\nConfirme sua ciência respondendo este ticket.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"amber"},
-  {id:16,canal:"ticket",tema:"conduta",titulo:"Transferência de titularidade",sub:"Franqueado quer transferir a conta",vars:["[Nome]","[XXXX]"],notas:"Mínimo 12 meses ativo. Trava de 2 anos após.",tpl:"Protocolo [XXXX] | Transferência de Titularidade\n\nOlá, [Nome]! Tudo bem?\n\nConforme a Aula 6.2, precisamos verificar:\n\n[ ] Conta ativa por no mínimo 12 meses consecutivos\n[ ] Conta em dia neste momento\n[ ] CPF/CNPJ de destino não foi expulso ou banido\n[ ] CPF/CNPJ de destino não está em período de carência\n[ ] CPF/CNPJ de destino sem pendências com a ORAYON\n\nInforme o CPF/CNPJ de destino e confirme os itens. Prazo: até 7 dias úteis.\n\n⚠️ Após a transferência, conta travada por 2 anos.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"teal"},
-  {id:17,canal:"ticket",tema:"flags",titulo:"Contestação de flag",sub:"Franqueado contesta uma flag aplicada",vars:["[Nome]","[XXXX]","[cor]","[data]"],notas:"Prazo: 2 dias úteis após evidências completas.",tpl:"Protocolo [XXXX] | Contestação de Flag [cor]\n\nOlá, [Nome]! Tudo bem?\n\nRecebemos sua contestação da flag [cor] aplicada em [data].\n\nPara análise completa, informe:\n1. Por que a flag foi aplicada incorretamente?\n2. Há evidências? Se sim, anexe neste ticket.\n\nPrazo: até 2 dias úteis após recebimento completo.\n\nMantenha este ticket aberto.\n\n[Nome do Atendente] | Equipe de Suporte ORAYON",cor:"red"},
-  {id:18,canal:"email",tema:"conduta",titulo:"Regra de órbita — cliente comprou de outro franqueado",sub:"Franqueado preocupado que perdeu o cliente",vars:["[Nome]"],notas:"Órbita é permanente. Distinguir órbita de comissão (Aula 6.3).",tpl:"Olá, [Nome]! Tudo bem?\n\nEntendo sua preocupação — e tenho uma boa notícia!\n\nDe acordo com o Manual de Compliance (Aula 6.3):\n\n✅ Seu cliente NÃO saiu da sua órbita. A vinculação é permanente.\n\nO que muda: apenas a comissão daquela compra vai para o franqueado que realizou a venda.\n\n• Compras dentro da plataforma → comissão sempre vai para você.\n• Compras por link externo de outro franqueado → comissão vai para quem vendeu.\n\nVocê não perdeu esse cliente!\n\n[Assinatura padrão]"},
-  {id:19,canal:"email",tema:"conduta",titulo:"Regra do sistema de cookies — prospecto",sub:"Para quem vai o cadastro com múltiplos links",vars:["[Nome]"],notas:"Vale sempre o último cookie. Citar Aula 6.3.",tpl:"Olá, [Nome]! Tudo bem?\n\nO sistema respeita sempre o último cookie — o link mais recente clicado pelo prospecto (Aula 6.3).\n\nNa prática:\n• Clicou só no seu link → vai para você.\n• Clicou em dois links → vale o mais recente.\n• Clica no seu link e compra na hora → vai para você.\n\nQuem faz o trabalho por último colhe o resultado.\n\n[Assinatura padrão]"},
-  {id:20,canal:"email",tema:"flags",titulo:"Explicação do sistema de flags",sub:"Franqueado quer entender o que é uma flag",vars:["[Nome]"],notas:"Citar Aula 6.4. Foco educativo — não gerar medo.",tpl:"Olá, [Nome]! Tudo bem?\n\nO sistema de flags é o mecanismo de governança da ORAYON (Aula 6.4):\n\n🟡 Amarela — Advertência. Prazo: 24–72h.\n🟠 Laranja — Suspensão até resolver. Sem acesso e sem comissões.\n🔴 Vermelha — Suspensão de 30 dias a 1 ano.\n⚫ Preta — Expulsão definitiva. Pode continuar como cliente.\n\nA melhor forma de nunca receber uma flag é seguir o Manual de Compliance.\n\n[Assinatura padrão]"},
-  {id:21,canal:"email",tema:"marca",titulo:"Posicionamento correto da ORAYON",sub:"Franqueado pergunta como apresentar a empresa",vars:["[Nome]"],notas:"Citar Aula 6.1 — Seção 5. Nunca MLM ou venda direta.",tpl:"Olá, [Nome]! Tudo bem?\n\nDe acordo com a Aula 6.1 — Seção 5:\n\n✅ Formas corretas:\n• \"A ORAYON é uma empresa de educação e tecnologia em IA.\"\n• \"Ecossistema completo com cursos, ferramentas e modelo de negócio.\"\n• \"Sou franqueado/parceiro da ORAYON.\"\n\n❌ Nunca:\n• Marketing multinível ou MLM\n• Venda direta\n• Esquema de ganho fácil\n\n[Assinatura padrão]"},
-  {id:22,canal:"ticket",tema:"flags",titulo:"Notificação de flag amarela",sub:"Comunicar abertura de flag amarela com prazo",vars:["[Nome]","[XXXX]","[infração]","[24h/72h]"],notas:"Pedir confirmação de leitura.",tpl:"Protocolo [XXXX] | Flag Amarela — Advertência\n\nOlá, [Nome]! Tudo bem?\n\nIdentificamos uma situação que requer correção imediata (Aula 6.4).\n\nInfração:\n[O que foi encontrado e onde]\n\nAção necessária:\n[O que precisa ser corrigido]\n\nPrazo: [24h / 72h] a partir deste comunicado.\n\nApós corrigir, confirme por este ticket. Se não corrigido, escala para flag laranja.\n\n[Nome do Atendente] | Equipe de Compliance ORAYON",cor:"amber"}
+// ── GOOGLE SHEETS API ─────────────────────────────────────────────
+async function sheetsGet(action){
+  try{
+    const r=await fetch(`${SHEETS_URL}?action=${action}`);
+    return await r.json();
+  }catch(e){console.error('Sheets GET error:',e);return null;}
+}
+async function sheetsPost(data){
+  try{
+    const r=await fetch(SHEETS_URL,{method:'POST',body:JSON.stringify(data)});
+    return await r.json();
+  }catch(e){console.error('Sheets POST error:',e);return null;}
+}
+
+// ── STATE ─────────────────────────────────────────────────────────
+let allTemplates=[],customTemas=[],fAtivo="all",abertos=new Set(),logData=[];
+let nId=1000;
+const BUILTIN_TEMAS=["geral","marca","conduta","flags","notif","denuncia"];
+const CANAL_LBL={chat:"Chat/WA",email:"E-mail",ticket:"Ticket"};
+const CANAL_BDG={chat:"b-chat",email:"b-email",ticket:"b-ticket"};
+const FILTROS=[
+  {id:"all",l:"Todos"},{id:"chat",l:"Chat/WA"},{id:"email",l:"E-mail"},
+  {id:"ticket",l:"Ticket"},{id:"marca",l:"Marca & Logo"},{id:"conduta",l:"Conduta & Rede"},
+  {id:"flags",l:"Flags"},{id:"notif",l:"Notificações"},{id:"denuncia",l:"Denúncias"},{id:"geral",l:"Geral"}
 ];
 
-let uTpls=[],nId=100,fAtivo="all",abertos=new Set(),logData=[];
-const FILTROS=[{id:"all",l:"Todos"},{id:"chat",l:"Chat/WA"},{id:"email",l:"E-mail"},{id:"ticket",l:"Ticket"},{id:"marca",l:"Marca & Logo"},{id:"conduta",l:"Conduta & Rede"},{id:"flags",l:"Flags"},{id:"notif",l:"Notificações"},{id:"denuncia",l:"Denúncias"},{id:"geral",l:"Geral"}];
-function allT(){return[...BASE,...uTpls];}
-function bc(t){if(t._new)return"b-new";if(t.canal==="chat")return"b-chat";if(t.canal==="ticket")return"b-ticket";if(t.tema==="notif")return"b-notif";if(t.tema==="denuncia")return"b-danger";return"b-email";}
-function bl(t){if(t._new)return"Novo";if(t.canal==="chat")return"Chat/WA";if(t.canal==="ticket")return"Ticket";if(t.tema==="notif")return"Notif";if(t.tema==="denuncia")return"Denúncia";return"E-mail";}
-function tl(t){return{marca:"Marca & Logo",conduta:"Conduta & Rede",flags:"Flags",notif:"Notificações",denuncia:"Denúncias",geral:"Geral"}[t.tema]||t.tema;}
+// ── LOADING STATE ─────────────────────────────────────────────────
+function showLoading(msg='Carregando...'){
+  document.getElementById("cards").innerHTML=`<div class="empty" id="loading-msg"><div style="font-size:22px;margin-bottom:8px">⏳</div>${msg}</div>`;
+}
+function showError(msg){
+  document.getElementById("cards").innerHTML=`<div class="empty" style="color:#A32D2D"><div style="font-size:22px;margin-bottom:8px">⚠️</div>${msg}</div>`;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+async function init(){
+  showLoading('Conectando ao Google Sheets...');
+  if(!SHEETS_URL||SHEETS_URL==='SUA_URL_AQUI'){
+    showError('URL do Google Sheets não configurada. Siga o passo a passo de configuração.');
+    buildF();return;
+  }
+  const [tpls,temas]=await Promise.all([sheetsGet('getTemplates'),sheetsGet('getTemas')]);
+  if(!tpls){showError('Não foi possível conectar ao Google Sheets. Verifique a URL configurada.');buildF();return;}
+  allTemplates=tpls.map(t=>({
+    ...t,
+    id:t.id||String(nId++),
+    tpl:[t.abertura,t.corpo,t.fechamento].filter(Boolean).join('
+
+'),
+    canais:Array.isArray(t.canais)?t.canais:(t.canal?[t.canal]:[]),
+    _new:t.tipo==='custom',
+  }));
+  if(temas) customTemas=temas.filter(t=>t.tipo!=='padrao');
+  rebuildTemaSelect('geral');
+  buildF();render();updNC();
+}
+
+// ── TEMPLATE HELPERS ──────────────────────────────────────────────
 function filtrar(){
   const q=document.getElementById("search").value.toLowerCase().trim();
-  return allT().filter(t=>{
+  return allTemplates.filter(t=>{
     const mf=fAtivo==="all"||t.canal===fAtivo||t.tema===fAtivo;
-    if(!mf)return false;if(!q)return true;
+    if(!mf)return false;
+    if(!q)return true;
     return(t.titulo+t.sub+t.tpl+(t.notas||"")).toLowerCase().includes(q);
   });
 }
-function buildF(){
-  const c=document.getElementById("filters");c.innerHTML="";
-  FILTROS.forEach(f=>{
-    const el=document.createElement("button");
-    el.className="filt"+(f.id===fAtivo?" active":"");
-    el.textContent=f.l;el.onclick=()=>{fAtivo=f.id;render();};c.appendChild(el);
-  });
-}
+function bc(t){if(t._new)return"b-new";if(t.canal==="chat")return"b-chat";if(t.canal==="ticket")return"b-ticket";if(t.tema==="notif")return"b-notif";if(t.tema==="denuncia")return"b-danger";return"b-email";}
+function bl(t){if(t._new)return"Novo";if(t.canal==="chat")return"Chat/WA";if(t.canal==="ticket")return"Ticket";if(t.tema==="notif")return"Notif";if(t.tema==="denuncia")return"Denúncia";return"E-mail";}
+function tl(t){const m={marca:"Marca & Logo",conduta:"Conduta & Rede",flags:"Flags",notif:"Notificações",denuncia:"Denúncias",geral:"Geral"};return m[t.tema]||t.temaLabel||t.tema;}
+
 function cHTML(t,del=false){
   const o=abertos.has(t.id);
   return`<div class="card${t._new?" new-card":""}" id="card-${t.id}">
-  <div class="card-head" onclick="tog(${t.id})">
+  <div class="card-head" onclick="tog('${t.id}')">
     ${t._new?'<span style="color:var(--np);font-size:13px">★</span>':''}
     <span class="badge ${bc(t)}">${bl(t)}</span>
     <div class="card-info"><div class="card-title">${t.titulo}</div><div class="card-sub">${t.sub}</div></div>
@@ -493,38 +519,60 @@ function cHTML(t,del=false){
   ${o?`<div class="card-body">
     <div class="tpl-box ${t.cor||''}">${t.tpl}</div>
     <div class="act-row">
-      <button class="copy-btn" id="cb${t.id}" onclick="cpT(${t.id},this)">Copiar template</button>
-      ${del?`<button class="del-btn" onclick="delT(${t.id})">Excluir</button>`:''}
-      ${t.vars&&t.vars.length?'<span style="font-size:12px;color:var(--text3)">Substituir:</span>':''}
+      <button class="copy-btn" id="cb${t.id}" onclick="cpT('${t.id}',this)">Copiar template</button>
+      ${del?`<button class="del-btn" onclick="delT('${t.id}')">Excluir</button>`:''}
+      ${t.canais&&t.canais.length?`<span style="font-size:11px;color:var(--text3)">${t.canais.map(c=>CANAL_LBL[c]||c).join(' · ')}</span>`:''}
     </div>
-    ${t.vars&&t.vars.length?`<div class="vars-row">${t.vars.map(v=>`<span class="var-chip">${v}</span>`).join("")}</div>`:''}
     ${t.notas?`<div class="hr"></div><div class="note-lbl">Orientações</div><div class="notes">${t.notas}</div>`:''}
   </div>`:''}
   </div>`;
 }
+
+function buildF(){
+  const c=document.getElementById("filters");c.innerHTML="";
+  FILTROS.forEach(f=>{
+    const el=document.createElement("button");
+    el.className="filt"+(f.id===fAtivo?" active":"");
+    el.textContent=f.l;el.onclick=()=>{fAtivo=f.id;render();};c.appendChild(el);
+  });
+}
 function render(){
-  buildF();const lista=filtrar();const tot=allT().length;
+  buildF();
+  const lista=filtrar();
+  const tot=allTemplates.length;
   document.getElementById("stats").textContent=lista.length===tot?`${tot} templates disponíveis`:`${lista.length} de ${tot} templates`;
   const c=document.getElementById("cards");
   c.innerHTML=lista.length?lista.map(t=>cHTML(t,t._new)).join(""):'<div class="empty">Nenhum template encontrado.</div>';
   rNewTab();updNC();
 }
 function rNewTab(){
+  const custom=allTemplates.filter(t=>t._new);
   const c=document.getElementById("new-cards");
-  c.innerHTML=uTpls.length?uTpls.map(t=>cHTML(t,true)).join(''):'<div class="empty">Nenhum template adicionado ainda.</div>';
+  c.innerHTML=custom.length?custom.map(t=>cHTML(t,true)).join(''):'<div class="empty">Nenhum template adicionado ainda.</div>';
 }
-function updNC(){document.getElementById("new-count").textContent=uTpls.length;}
+function updNC(){document.getElementById("new-count").textContent=allTemplates.filter(t=>t._new).length;}
 function tog(id){abertos.has(id)?abertos.delete(id):abertos.add(id);render();}
 function cpT(id,btn){
-  const t=allT().find(x=>x.id===id);
+  const t=allTemplates.find(x=>x.id===id||x.id===String(id));
+  if(!t)return;
+  const copy=t.tpl;
   if(navigator.clipboard){
-    navigator.clipboard.writeText(t.tpl).then(()=>{btn.textContent="Copiado!";btn.classList.add("copied");setTimeout(()=>{btn.textContent="Copiar template";btn.classList.remove("copied");},1800);});
+    navigator.clipboard.writeText(copy).then(()=>{btn.textContent="Copiado!";btn.classList.add("copied");setTimeout(()=>{btn.textContent="Copiar template";btn.classList.remove("copied");},1800);});
   } else {
-    const ta=document.createElement("textarea");ta.value=t.tpl;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+    const ta=document.createElement("textarea");ta.value=copy;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
     btn.textContent="Copiado!";btn.classList.add("copied");setTimeout(()=>{btn.textContent="Copiar template";btn.classList.remove("copied");},1800);
   }
 }
-function delT(id){uTpls=uTpls.filter(t=>t.id!==id);abertos.delete(id);render();}
+async function delT(id){
+  if(!confirm("Excluir este template?"))return;
+  const r=await sheetsPost({action:'deleteTemplate',id});
+  if(r&&r.success){
+    allTemplates=allTemplates.filter(t=>t.id!==id&&t.id!==String(id));
+    render();
+  } else {alert("Erro ao excluir. Tente novamente.");}
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────
 function sw(t){
   ["lib","new","add","dash"].forEach(id=>{
     document.getElementById("pane-"+id).classList.toggle("active",id===t);
@@ -532,9 +580,9 @@ function sw(t){
   });
   if(t==="dash")rDash();if(t==="new")rNewTab();
 }
+
+// ── CANAL MULTI-SELECT ────────────────────────────────────────────
 let canaisSel=new Set();
-const CANAL_LBL={chat:"Chat/WA",email:"E-mail",ticket:"Ticket"};
-const CANAL_BDG={chat:"b-chat",email:"b-email",ticket:"b-ticket"};
 function togCanal(c){
   const opt=document.getElementById("opt-"+c);
   if(canaisSel.has(c)){canaisSel.delete(c);opt.classList.remove("selected");}
@@ -543,8 +591,8 @@ function togCanal(c){
   row.innerHTML=[...canaisSel].map(x=>`<span class="badge ${CANAL_BDG[x]}">${CANAL_LBL[x]}</span>`).join("");
   document.getElementById("canal-err").style.display="none";
 }
-const BUILTIN_TEMAS=["geral","marca","conduta","flags","notif","denuncia"];
-let customTemas=[];
+
+// ── TEMA MANAGEMENT ───────────────────────────────────────────────
 function isBuiltinTema(k){return BUILTIN_TEMAS.includes(k);}
 function onTemaChange(){
   closeTemaForm("new");closeTemaForm("edit");closeDelConfirm();
@@ -553,14 +601,11 @@ function onTemaChange(){
   const et=document.getElementById("btn-et"),dt=document.getElementById("btn-dt");
   et.disabled=b;dt.disabled=b;
   et.style.opacity=b?".3":"1";dt.style.opacity=b?".3":"1";
-  et.title=b?"Temas padrão não podem ser editados":"";
-  dt.title=b?"Temas padrão não podem ser excluídos":"";
 }
 function showTemaForm(type){
   closeTemaForm("new");closeTemaForm("edit");closeDelConfirm();
   if(type==="edit"){
-    const k=document.getElementById("f-tema").value;
-    if(isBuiltinTema(k))return;
+    const k=document.getElementById("f-tema").value;if(isBuiltinTema(k))return;
     const t=customTemas.find(x=>x.key===k);
     document.getElementById("tema-input-edit").value=t?t.label:"";
   }
@@ -571,56 +616,79 @@ function closeTemaForm(type){
   document.getElementById("tema-form-"+type).classList.remove("show");
   document.getElementById("tema-input-"+type).value="";
 }
-function saveTemaNew(){
+async function saveTemaNew(){
   const v=document.getElementById("tema-input-new").value.trim();
   if(!v){showTemaHint("Digite o nome do novo tema.","warn");return;}
   const k=v.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9\-]/g,"");
   const sel=document.getElementById("f-tema");
   if([...sel.options].some(o=>o.value===k||o.textContent.toLowerCase()===v.toLowerCase())){showTemaHint("Esse tema já existe.","warn");return;}
-  customTemas.push({key:k,label:v});
-  const opt=document.createElement("option");opt.value=k;opt.textContent=v;opt.selected=true;sel.appendChild(opt);
-  closeTemaForm("new");onTemaChange();
-  showTemaHint(`Tema "${v}" criado e selecionado.`,"ok");
+  const r=await sheetsPost({action:'saveTema',tema:{key:k,label:v,tipo:'custom'}});
+  if(r&&r.success){
+    customTemas.push({key:k,label:v,tipo:'custom'});
+    rebuildTemaSelect(k);
+    closeTemaForm("new");onTemaChange();
+    showTemaHint(`Tema "${v}" criado e salvo no Google Sheets.`,"ok");
+  } else {showTemaHint("Erro ao salvar tema. Tente novamente.","warn");}
 }
-function saveTemaEdit(){
+async function saveTemaEdit(){
   const v=document.getElementById("tema-input-edit").value.trim();
   if(!v){showTemaHint("Digite o novo nome.","warn");return;}
   const k=document.getElementById("f-tema").value;
-  const t=customTemas.find(x=>x.key===k);if(!t)return;
   const conflict=[...document.getElementById("f-tema").options].find(o=>o.textContent.toLowerCase()===v.toLowerCase()&&o.value!==k);
   if(conflict){showTemaHint("Já existe um tema com esse nome.","warn");return;}
-  const oldLabel=t.label;t.label=v;
-  const opt=[...document.getElementById("f-tema").options].find(o=>o.value===k);
-  if(opt)opt.textContent=v;
-  closeTemaForm("edit");
-  showTemaHint(`Tema renomeado de "${oldLabel}" para "${v}".`,"ok");
+  const r=await sheetsPost({action:'editTema',key:k,newLabel:v});
+  if(r&&r.success){
+    const t=customTemas.find(x=>x.key===k);if(t)t.label=v;
+    const opt=[...document.getElementById("f-tema").options].find(o=>o.value===k);if(opt)opt.textContent=v;
+    allTemplates.forEach(tp=>{if(tp.tema===k)tp.temaLabel=v;});
+    closeTemaForm("edit");showTemaHint(`Tema renomeado para "${v}" e salvo no Sheets.`,"ok");
+  } else {showTemaHint("Erro ao editar tema.","warn");}
 }
 function showDelConfirm(){
-  const k=document.getElementById("f-tema").value;
-  if(isBuiltinTema(k))return;
+  const k=document.getElementById("f-tema").value;if(isBuiltinTema(k))return;
   closeTemaForm("new");closeTemaForm("edit");
-  const t=customTemas.find(x=>x.key===k);
-  const label=t?t.label:k;
-  document.getElementById("del-msg").textContent=`Excluir "${label}"? Templates com este tema serão movidos para "Geral".`;
+  const t=customTemas.find(x=>x.key===k);const label=t?t.label:k;
+  document.getElementById("del-msg").textContent=`Excluir "${label}"? Templates associados serão movidos para "Geral".`;
   document.getElementById("del-confirm").classList.add("show");
 }
 function closeDelConfirm(){document.getElementById("del-confirm").classList.remove("show");}
-function confirmDelTema(){
+async function confirmDelTema(){
   const k=document.getElementById("f-tema").value;
-  const t=customTemas.find(x=>x.key===k);
-  const label=t?t.label:k;
-  customTemas=customTemas.filter(x=>x.key!==k);
-  uTpls.forEach(tp=>{if(tp.tema===k){tp.tema="geral";tp.temaLabel="Geral";}});
+  const t=customTemas.find(x=>x.key===k);const label=t?t.label:k;
+  const r=await sheetsPost({action:'deleteTema',key:k});
+  if(r&&r.success){
+    customTemas=customTemas.filter(x=>x.key!==k);
+    allTemplates.forEach(tp=>{if(tp.tema===k){tp.tema="geral";tp.temaLabel="Geral";}});
+    const opt=[...document.getElementById("f-tema").options].find(o=>o.value===k);if(opt)opt.remove();
+    document.getElementById("f-tema").value="geral";
+    closeDelConfirm();onTemaChange();
+    showTemaHint(`Tema "${label}" excluído. Templates movidos para Geral.`,"ok");
+    render();
+  } else {showTemaHint("Erro ao excluir tema.","warn");}
+}
+function rebuildTemaSelect(selectKey){
   const sel=document.getElementById("f-tema");
-  const opt=[...sel.options].find(o=>o.value===k);if(opt)opt.remove();
-  sel.value="geral";closeDelConfirm();onTemaChange();
-  showTemaHint(`Tema "${label}" excluído. Templates movidos para Geral.`,"ok");
+  const builtins=[
+    {key:"geral",label:"Geral"},{key:"marca",label:"Marca & Logo"},
+    {key:"conduta",label:"Conduta & Rede"},{key:"flags",label:"Flags"},
+    {key:"notif",label:"Notificações"},{key:"denuncia",label:"Denúncias"},
+  ];
+  sel.innerHTML="";
+  [...builtins,...customTemas].forEach(t=>{
+    const opt=document.createElement("option");
+    opt.value=t.key;opt.textContent=t.label;
+    if(t.key===selectKey)opt.selected=true;
+    sel.appendChild(opt);
+  });
+  onTemaChange();
 }
 function showTemaHint(msg,type){
   const el=document.getElementById("tema-hint");
   el.textContent=msg;el.className="tema-hint "+(type==="ok"?"th-ok":"th-warn");
   setTimeout(()=>{el.textContent="";el.className="tema-hint";},4000);
 }
+
+// ── FORM / PREVIEW ────────────────────────────────────────────────
 function updPrev(){
   const ab=document.getElementById("f-ab").value.trim();
   const bo=document.getElementById("f-body").value.trim();
@@ -632,18 +700,40 @@ function updPrev(){
   document.getElementById("vars-hint").textContent=bo?(vars.length?`${vars.length} variável(is) detectada(s).`:"Nenhuma variável [colchete] detectada."):"";
 }
 ["f-ab","f-body","f-close"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",updPrev);});
-function saveTpl(){
+
+async function saveTpl(){
   const titulo=document.getElementById("f-titulo").value.trim();
   const co=document.getElementById("f-body").value.trim();
   if(!titulo||!co){alert("Preencha pelo menos o título e a mensagem principal.");return;}
   if(canaisSel.size===0){document.getElementById("canal-err").style.display="block";return;}
-  const tpl=[document.getElementById("f-ab").value.trim(),co,document.getElementById("f-close").value.trim()].filter(Boolean).join("\n\n");
-  const vars=[...tpl.matchAll(/\[[^\]]+\]/g)].map(m=>m[0]).filter((v,i,a)=>a.indexOf(v)===i);
+  const ab=document.getElementById("f-ab").value.trim();
+  const cl=document.getElementById("f-close").value.trim();
+  const tpl=[ab,co,cl].filter(Boolean).join("\n\n");
   const canalPrimario=[...canaisSel][0];
   const sel=document.getElementById("f-tema");
-  uTpls.unshift({id:nId++,canal:canalPrimario,canaisAll:[...canaisSel],tema:sel.value,temaLabel:sel.options[sel.selectedIndex].textContent,titulo,sub:document.getElementById("f-sub").value.trim()||"Template criado pela equipe",tpl,vars,notas:document.getElementById("f-notas").value.trim(),_new:true,cor:"pink"});
-  updNC();render();const toast=document.getElementById("toast");toast.style.display="flex";setTimeout(()=>{toast.style.display="none";},3000);clearForm();
+  const id='tpl_'+new Date().getTime();
+  const novoTpl={
+    id,canal:canalPrimario,canais:[...canaisSel],
+    tema:sel.value,temaLabel:sel.options[sel.selectedIndex].textContent,
+    titulo,sub:document.getElementById("f-sub").value.trim()||"Template criado pela equipe",
+    abertura:ab,corpo:co,fechamento:cl,
+    notas:document.getElementById("f-notas").value.trim(),
+    cor:"pink",tipo:"custom",ativo:true,
+    tpl,_new:true,
+  };
+  const btn=document.querySelector('.save-btn');
+  btn.textContent="Salvando...";btn.disabled=true;
+  const r=await sheetsPost({action:'saveTemplate',template:novoTpl});
+  btn.textContent="Salvar template";btn.disabled=false;
+  if(r&&r.success){
+    allTemplates.unshift(novoTpl);
+    updNC();render();
+    const toast=document.getElementById("toast");toast.style.display="flex";
+    setTimeout(()=>{toast.style.display="none";},3000);
+    clearForm();
+  } else {alert("Erro ao salvar no Google Sheets. Verifique a conexão e tente novamente.");}
 }
+
 function clearForm(){
   ["f-titulo","f-sub","f-body","f-notas"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("f-ab").value="Olá, [Nome]! Tudo bem?\n\nObrigado(a) por entrar em contato com a equipe de suporte da ORAYON. Estou aqui para te ajudar.";
@@ -656,6 +746,8 @@ function clearForm(){
   document.getElementById("canal-badges").innerHTML="";
   document.getElementById("canal-err").style.display="none";
 }
+
+// ── DASHBOARD ─────────────────────────────────────────────────────
 function addLog(){
   const canal=document.getElementById("log-canal").value;
   const att=document.getElementById("log-att").value.trim()||"—";
@@ -698,14 +790,16 @@ function rDash(){
     return`<tr><td>${x.prot}</td><td style="font-size:11px">${x.label}</td><td>${x.att}</td><td>${x.tempo}min (${Math.round(x.tempo/x.sla*100)}%)</td><td style="font-size:11px;color:var(--text3)">${x.sla}min</td><td><span class="sp ${sc}">${sl}</span></td></tr>`;
   }).join("");
 }
-buildF();render();rDash();
 
-// ── SERVICE WORKER ──────────────────────────────────────────────
+// ── BOOT ──────────────────────────────────────────────────────────
+buildF();rDash();init();
+
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('sw.js').then(r=>console.log('SW registered',r)).catch(e=>console.log('SW error',e));
+    navigator.serviceWorker.register('sw.js').then(r=>console.log('SW ok',r)).catch(e=>console.log('SW error',e));
   });
 }
+</script>
 </script>
 </body>
 </html>
