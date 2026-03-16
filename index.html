@@ -137,18 +137,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .canal-lbl{font-size:13px;color:var(--text)}
 .canal-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;min-height:16px}
 .canal-err{font-size:12px;color:#A32D2D;display:none;margin-top:3px}
-.tema-row{display:flex;gap:7px;align-items:flex-start}
-.tema-row select{flex:1;padding:8px 11px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);font-family:var(--font)}
+.tema-row{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap}
+.tema-row select{flex:1;min-width:120px;padding:8px 11px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);font-family:var(--font)}
 .tema-row select:focus{outline:none;border-color:var(--cs)}
-.new-tema-btn{padding:8px 12px;border:0.5px solid var(--cs);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:#eaecfd;color:var(--cs);white-space:nowrap;font-weight:500;transition:all .15s;flex-shrink:0}
-.new-tema-btn:hover{background:var(--cs);color:#fff}
-.new-tema-form{display:none;gap:7px;align-items:center;flex-wrap:wrap;margin-top:5px;padding:9px 11px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-sm)}
-.new-tema-form.show{display:flex}
-.new-tema-form input{flex:1;min-width:130px;padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:var(--font)}
-.new-tema-form input:focus{outline:none;border-color:var(--cs)}
-.save-tema-btn{padding:7px 12px;background:var(--np);border:none;border-radius:var(--radius-sm);color:#fff;font-size:12px;cursor:pointer;font-weight:500;white-space:nowrap}
-.cancel-tema-btn{padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:transparent;color:var(--text2)}
-.tema-hint{font-size:11px;color:var(--ok);margin-top:3px;min-height:14px}
+.tema-btns{display:flex;gap:5px;flex-shrink:0}
+.btn-nt{padding:7px 11px;border:0.5px solid var(--cs);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:#eaecfd;color:var(--cs);font-weight:500;transition:all .15s;white-space:nowrap}
+.btn-nt:hover{background:var(--cs);color:#fff}
+.btn-et{padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:transparent;color:var(--text2);transition:all .15s;white-space:nowrap}
+.btn-et:hover{border-color:var(--cs);color:var(--cs)}
+.btn-dt{padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:transparent;color:var(--text2);transition:all .15s;white-space:nowrap}
+.btn-dt:hover{border-color:#A32D2D;color:#A32D2D}
+.btn-et[disabled],.btn-dt[disabled]{opacity:.3;cursor:not-allowed;pointer-events:none}
+.tema-inline{display:none;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px;padding:9px 11px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-sm)}
+.tema-inline.show{display:flex}
+.tema-inline input{flex:1;min-width:130px;padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:var(--font)}
+.tema-inline input:focus{outline:none;border-color:var(--cs)}
+.btn-st{padding:7px 12px;background:var(--np);border:none;border-radius:var(--radius-sm);color:#fff;font-size:12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn-ct{padding:7px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:transparent;color:var(--text2)}
+.del-confirm{display:none;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px;padding:9px 11px;background:#fde8f1;border:0.5px solid var(--np);border-radius:var(--radius-sm)}
+.del-confirm.show{display:flex}
+.del-msg{font-size:12px;color:#A32D2D;flex:1}
+.btn-dyes{padding:6px 12px;background:#A32D2D;border:none;border-radius:var(--radius-sm);color:#fff;font-size:12px;cursor:pointer;font-weight:500}
+.btn-dno{padding:6px 10px;border:0.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:transparent;color:var(--text2)}
+.tema-hint{font-size:11px;margin-top:3px;min-height:14px}
+.th-ok{color:var(--ok)}.th-warn{color:#854F0B}
 .vars-hint{font-size:11px;color:var(--text3);margin-top:3px}
 .vars-row2{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
 .form-title{font-size:15px;font-weight:500;color:var(--text)}
@@ -291,7 +303,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="field">
         <label>Tema <span style="color:var(--np)">*</span></label>
         <div class="tema-row">
-          <select id="f-tema">
+          <select id="f-tema" onchange="onTemaChange()">
             <option value="geral">Geral</option>
             <option value="marca">Marca &amp; Logo</option>
             <option value="conduta">Conduta &amp; Rede</option>
@@ -299,12 +311,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <option value="notif">Notificações</option>
             <option value="denuncia">Denúncias</option>
           </select>
-          <button class="new-tema-btn" onclick="showNewTema()">+ Novo tema</button>
+          <div class="tema-btns">
+            <button class="btn-nt" onclick="showTemaForm('new')">+ Novo</button>
+            <button class="btn-et" id="btn-et" onclick="showTemaForm('edit')" disabled>Editar</button>
+            <button class="btn-dt" id="btn-dt" onclick="showDelConfirm()" disabled>Excluir</button>
+          </div>
         </div>
-        <div class="new-tema-form" id="new-tema-form">
-          <input type="text" id="new-tema-input" placeholder="Nome do novo tema... ex: Financeiro">
-          <button class="save-tema-btn" onclick="saveNewTema()">Criar tema</button>
-          <button class="cancel-tema-btn" onclick="cancelNewTema()">Cancelar</button>
+        <div class="tema-inline" id="tema-form-new">
+          <input type="text" id="tema-input-new" placeholder="Nome do novo tema... ex: Financeiro">
+          <button class="btn-st" onclick="saveTemaNew()">Criar tema</button>
+          <button class="btn-ct" onclick="closeTemaForm('new')">Cancelar</button>
+        </div>
+        <div class="tema-inline" id="tema-form-edit">
+          <input type="text" id="tema-input-edit" placeholder="Novo nome para este tema">
+          <button class="btn-st" onclick="saveTemaEdit()">Salvar edição</button>
+          <button class="btn-ct" onclick="closeTemaForm('edit')">Cancelar</button>
+        </div>
+        <div class="del-confirm" id="del-confirm">
+          <span class="del-msg" id="del-msg"></span>
+          <button class="btn-dyes" onclick="confirmDelTema()">Sim, excluir</button>
+          <button class="btn-dno" onclick="closeDelConfirm()">Cancelar</button>
         </div>
         <div class="tema-hint" id="tema-hint"></div>
       </div>
@@ -517,17 +543,83 @@ function togCanal(c){
   row.innerHTML=[...canaisSel].map(x=>`<span class="badge ${CANAL_BDG[x]}">${CANAL_LBL[x]}</span>`).join("");
   document.getElementById("canal-err").style.display="none";
 }
-function showNewTema(){document.getElementById("new-tema-form").classList.add("show");document.getElementById("new-tema-input").focus();}
-function cancelNewTema(){document.getElementById("new-tema-form").classList.remove("show");document.getElementById("new-tema-input").value="";}
-function saveNewTema(){
-  const v=document.getElementById("new-tema-input").value.trim();
-  if(!v){alert("Digite o nome do novo tema.");return;}
-  const k=v.toLowerCase().replace(/\s+/g,"-");
+const BUILTIN_TEMAS=["geral","marca","conduta","flags","notif","denuncia"];
+let customTemas=[];
+function isBuiltinTema(k){return BUILTIN_TEMAS.includes(k);}
+function onTemaChange(){
+  closeTemaForm("new");closeTemaForm("edit");closeDelConfirm();
+  const k=document.getElementById("f-tema").value;
+  const b=isBuiltinTema(k);
+  const et=document.getElementById("btn-et"),dt=document.getElementById("btn-dt");
+  et.disabled=b;dt.disabled=b;
+  et.style.opacity=b?".3":"1";dt.style.opacity=b?".3":"1";
+  et.title=b?"Temas padrão não podem ser editados":"";
+  dt.title=b?"Temas padrão não podem ser excluídos":"";
+}
+function showTemaForm(type){
+  closeTemaForm("new");closeTemaForm("edit");closeDelConfirm();
+  if(type==="edit"){
+    const k=document.getElementById("f-tema").value;
+    if(isBuiltinTema(k))return;
+    const t=customTemas.find(x=>x.key===k);
+    document.getElementById("tema-input-edit").value=t?t.label:"";
+  }
+  document.getElementById("tema-form-"+type).classList.add("show");
+  document.getElementById("tema-input-"+type).focus();
+}
+function closeTemaForm(type){
+  document.getElementById("tema-form-"+type).classList.remove("show");
+  document.getElementById("tema-input-"+type).value="";
+}
+function saveTemaNew(){
+  const v=document.getElementById("tema-input-new").value.trim();
+  if(!v){showTemaHint("Digite o nome do novo tema.","warn");return;}
+  const k=v.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9\-]/g,"");
   const sel=document.getElementById("f-tema");
-  if([...sel.options].some(o=>o.value===k)){alert("Esse tema já existe.");return;}
+  if([...sel.options].some(o=>o.value===k||o.textContent.toLowerCase()===v.toLowerCase())){showTemaHint("Esse tema já existe.","warn");return;}
+  customTemas.push({key:k,label:v});
   const opt=document.createElement("option");opt.value=k;opt.textContent=v;opt.selected=true;sel.appendChild(opt);
-  const h=document.getElementById("tema-hint");h.textContent=`Tema "${v}" criado e selecionado.`;
-  cancelNewTema();setTimeout(()=>{h.textContent="";},3000);
+  closeTemaForm("new");onTemaChange();
+  showTemaHint(`Tema "${v}" criado e selecionado.`,"ok");
+}
+function saveTemaEdit(){
+  const v=document.getElementById("tema-input-edit").value.trim();
+  if(!v){showTemaHint("Digite o novo nome.","warn");return;}
+  const k=document.getElementById("f-tema").value;
+  const t=customTemas.find(x=>x.key===k);if(!t)return;
+  const conflict=[...document.getElementById("f-tema").options].find(o=>o.textContent.toLowerCase()===v.toLowerCase()&&o.value!==k);
+  if(conflict){showTemaHint("Já existe um tema com esse nome.","warn");return;}
+  const oldLabel=t.label;t.label=v;
+  const opt=[...document.getElementById("f-tema").options].find(o=>o.value===k);
+  if(opt)opt.textContent=v;
+  closeTemaForm("edit");
+  showTemaHint(`Tema renomeado de "${oldLabel}" para "${v}".`,"ok");
+}
+function showDelConfirm(){
+  const k=document.getElementById("f-tema").value;
+  if(isBuiltinTema(k))return;
+  closeTemaForm("new");closeTemaForm("edit");
+  const t=customTemas.find(x=>x.key===k);
+  const label=t?t.label:k;
+  document.getElementById("del-msg").textContent=`Excluir "${label}"? Templates com este tema serão movidos para "Geral".`;
+  document.getElementById("del-confirm").classList.add("show");
+}
+function closeDelConfirm(){document.getElementById("del-confirm").classList.remove("show");}
+function confirmDelTema(){
+  const k=document.getElementById("f-tema").value;
+  const t=customTemas.find(x=>x.key===k);
+  const label=t?t.label:k;
+  customTemas=customTemas.filter(x=>x.key!==k);
+  uTpls.forEach(tp=>{if(tp.tema===k){tp.tema="geral";tp.temaLabel="Geral";}});
+  const sel=document.getElementById("f-tema");
+  const opt=[...sel.options].find(o=>o.value===k);if(opt)opt.remove();
+  sel.value="geral";closeDelConfirm();onTemaChange();
+  showTemaHint(`Tema "${label}" excluído. Templates movidos para Geral.`,"ok");
+}
+function showTemaHint(msg,type){
+  const el=document.getElementById("tema-hint");
+  el.textContent=msg;el.className="tema-hint "+(type==="ok"?"th-ok":"th-warn");
+  setTimeout(()=>{el.textContent="";el.className="tema-hint";},4000);
 }
 function updPrev(){
   const ab=document.getElementById("f-ab").value.trim();
